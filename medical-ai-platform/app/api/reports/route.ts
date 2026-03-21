@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
-import { reports, scans, users } from "@/lib/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { reports, scans, users, hospitalReportTemplates } from "@/lib/db/schema";
+import { eq, desc, and } from "drizzle-orm";
 
 // GET /api/reports — List reports
 export async function GET() {
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
         }
 
         const body = await req.json();
-        const { scanId, diagnosis, findings, recommendations, severity } = body;
+        const { scanId, diagnosis, findings, recommendations, severity, hospitalTemplateId } = body;
 
         if (!scanId || !diagnosis || !findings) {
             return NextResponse.json({ error: "scanId, diagnosis, findings required" }, { status: 400 });
@@ -71,6 +71,20 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Scan not found" }, { status: 404 });
         }
 
+        // Resolve hospitalTemplateId: explicit → doctor's hospital default → null
+        let resolvedTemplateId: number | null = hospitalTemplateId || null;
+        if (!resolvedTemplateId && user.hospitalId) {
+            const defaultTemplate = await db.query.hospitalReportTemplates.findFirst({
+                where: and(
+                    eq(hospitalReportTemplates.hospitalId, user.hospitalId),
+                    eq(hospitalReportTemplates.isDefault, true),
+                ),
+            });
+            if (defaultTemplate) {
+                resolvedTemplateId = defaultTemplate.id;
+            }
+        }
+
         const [report] = await db
             .insert(reports)
             .values({
@@ -82,6 +96,8 @@ export async function POST(req: NextRequest) {
                 recommendations: recommendations || null,
                 severity: severity || "moderate",
                 status: "signed",
+                hospitalTemplateId: resolvedTemplateId,
+                deliveryStatus: "pending",
             })
             .returning();
 

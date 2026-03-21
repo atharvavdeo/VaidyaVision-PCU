@@ -81,8 +81,11 @@ export const reports = sqliteTable("reports", {
     status: text("status", { enum: ["draft", "signed"] }).notNull().default("draft"),
     language: text("language").notNull().default("en"),
     templateId: integer("template_id").references(() => templates.id),
+    hospitalTemplateId: integer("hospital_template_id").references(() => hospitalReportTemplates.id),
     signedAt: integer("signed_at", { mode: "timestamp" }),
+    releasedAt: integer("released_at", { mode: "timestamp" }),
     pdfUrl: text("pdf_url"),
+    deliveryStatus: text("delivery_status", { enum: ["pending", "sent", "failed"] }).notNull().default("pending"),
     createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
     // PR4 bridge column
     caseId: integer("case_id"),
@@ -193,12 +196,36 @@ export const voiceNotes = sqliteTable("voice_notes", {
     createdAt: integer("created_at").default(sql`(unixepoch())`),
 });
 
+// =====================================================
+// EMAIL CONNECTIONS (Gmail OAuth for doctor mailbox sending)
+// =====================================================
+export const emailConnections = sqliteTable("email_connections", {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    userId: integer("user_id").references(() => users.id).notNull(),
+    provider: text("provider", { enum: ["gmail", "outlook"] }).notNull().default("gmail"),
+    providerEmail: text("provider_email").notNull(),
+    accessTokenEncrypted: text("access_token_encrypted").notNull(),
+    refreshTokenEncrypted: text("refresh_token_encrypted").notNull(),
+    expiresAt: integer("expires_at", { mode: "timestamp" }),
+    scope: text("scope"),
+    status: text("status", { enum: ["active", "expired", "revoked"] }).notNull().default("active"),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+}, (table) => ({
+    uniqueUserProvider: uniqueIndex("ec_user_provider").on(table.userId, table.provider),
+}));
+
+export const emailConnectionsRelations = relations(emailConnections, ({ one }) => ({
+    user: one(users, { fields: [emailConnections.userId], references: [users.id] }),
+}));
+
 export const usersRelations = relations(users, ({ one, many }) => ({
     doctorProfile: one(doctorProfiles),
     scansAsPatient: many(scans, { relationName: "patientScans" }),
     scansAsDoctor: many(scans, { relationName: "doctorScans" }),
     notifications: many(notifications),
     followUps: many(followUps),
+    emailConnections: many(emailConnections),
 }));
 
 export const scansRelations = relations(scans, ({ one, many }) => ({
@@ -224,6 +251,7 @@ export const reportsRelations = relations(reports, ({ one }) => ({
     patient: one(users, { fields: [reports.patientId], references: [users.id] }),
     doctor: one(users, { fields: [reports.doctorId], references: [users.id] }),
     template: one(templates, { fields: [reports.templateId], references: [templates.id] }),
+    hospitalTemplate: one(hospitalReportTemplates, { fields: [reports.hospitalTemplateId], references: [hospitalReportTemplates.id] }),
 }));
 
 export const appointmentsRelations = relations(appointments, ({ one }) => ({

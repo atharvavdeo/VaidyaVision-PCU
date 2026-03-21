@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Download, Printer, Loader2 } from "lucide-react";
+import { ArrowLeft, Download, Printer, Loader2, FileText, Send } from "lucide-react";
 
 export default function ReportViewPage() {
     const router = useRouter();
@@ -10,6 +10,8 @@ export default function ReportViewPage() {
     const id = params.id as string;
     const [report, setReport] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [pdfLoading, setPdfLoading] = useState(false);
+    const [releaseLoading, setReleaseLoading] = useState(false);
     const printRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -26,6 +28,63 @@ export default function ReportViewPage() {
 
     const handlePrint = () => {
         window.print();
+    };
+
+    const handleGeneratePdf = async () => {
+        setPdfLoading(true);
+        try {
+            const refresh = report?.pdfUrl ? "" : "";
+            const res = await fetch(`/api/reports/${id}/pdf${refresh}`);
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({ error: "PDF generation failed" }));
+                alert(err.error || "Failed to generate PDF");
+                return;
+            }
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            window.open(url, "_blank");
+
+            // Update local state so the button switches to "Open PDF"
+            setReport((prev: any) => ({
+                ...prev,
+                pdfUrl: `/generated-reports/report-${id}.pdf`,
+            }));
+        } catch (err) {
+            alert("PDF generation failed. Please try again.");
+        } finally {
+            setPdfLoading(false);
+        }
+    };
+
+    const handleOpenPdf = () => {
+        if (report?.pdfUrl) {
+            window.open(report.pdfUrl, "_blank");
+        }
+    };
+
+    const handleRelease = async () => {
+        setReleaseLoading(true);
+        try {
+            const res = await fetch(`/api/reports/${id}/notify`, { method: "POST" });
+            const data = await res.json();
+            if (!res.ok) {
+                alert(data.error || "Release/Notify failed");
+                return;
+            }
+            setReport((prev: any) => ({
+                ...prev,
+                releasedAt: data.releasedAt,
+                deliveryStatus: data.deliveryStatus,
+                pdfUrl: data.pdfUrl || prev.pdfUrl,
+            }));
+            alert(data.deliveryStatus === "sent" 
+                ? "Report released and n8n webhook triggered successfully!"
+                : `Report released, but webhook failed: ${data.deliveryDetail}`);
+        } catch {
+            alert("Release failed. Please try again.");
+        } finally {
+            setReleaseLoading(false);
+        }
     };
 
     if (loading) {
@@ -59,14 +118,76 @@ export default function ReportViewPage() {
                     <ArrowLeft className="w-5 h-5" /> Back
                 </button>
                 <div className="flex gap-3">
+                    {/* PDF Action */}
+                    {report.pdfUrl ? (
+                        <button
+                            onClick={handleOpenPdf}
+                            className="flex items-center gap-2 px-5 py-2.5 bg-emerald-700 text-cream-50 rounded-xl font-display font-bold text-sm hover:bg-emerald-800 transition shadow-lg shadow-emerald-700/20"
+                        >
+                            <FileText className="w-4 h-4" /> Open PDF
+                        </button>
+                    ) : (
+                        <button
+                            onClick={handleGeneratePdf}
+                            disabled={pdfLoading}
+                            className="flex items-center gap-2 px-5 py-2.5 bg-blue-700 text-cream-50 rounded-xl font-display font-bold text-sm hover:bg-blue-800 transition shadow-lg shadow-blue-700/20 disabled:opacity-50"
+                        >
+                            {pdfLoading ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                                <FileText className="w-4 h-4" />
+                            )}
+                            {pdfLoading ? "Generating..." : "Generate PDF"}
+                        </button>
+                    )}
                     <button
                         onClick={handlePrint}
                         className="flex items-center gap-2 px-5 py-2.5 bg-olive-800 text-cream-50 rounded-xl font-display font-bold text-sm hover:bg-olive-900 transition shadow-lg shadow-olive-800/20"
                     >
-                        <Printer className="w-4 h-4" /> Print / Save as PDF
+                        <Printer className="w-4 h-4" /> Print
                     </button>
+                    {/* Release Button */}
+                    {!report.releasedAt && (
+                        <button
+                            onClick={handleRelease}
+                            disabled={releaseLoading}
+                            className="flex items-center gap-2 px-5 py-2.5 bg-amber-600 text-white rounded-xl font-display font-bold text-sm hover:bg-amber-700 transition shadow-lg shadow-amber-600/20 disabled:opacity-50"
+                        >
+                            {releaseLoading ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                                <Send className="w-4 h-4" />
+                            )}
+                            {releaseLoading ? "Releasing..." : "Release Report"}
+                        </button>
+                    )}
+                    {report.releasedAt && (
+                        <span className="flex items-center gap-2 px-5 py-2.5 bg-emerald-100 text-emerald-800 rounded-xl font-display font-bold text-sm">
+                            <Send className="w-4 h-4" /> Released ✓
+                        </span>
+                    )}
                 </div>
             </div>
+
+            {/* Status Badges (hidden on print) */}
+            {(report.deliveryStatus || report.releasedAt) && (
+                <div className="print:hidden flex gap-3 mb-4">
+                    {report.releasedAt && (
+                        <span className="text-xs px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full font-medium">
+                            Released {new Date(report.releasedAt).toLocaleDateString("en-IN")}
+                        </span>
+                    )}
+                    {report.deliveryStatus && report.deliveryStatus !== "pending" && (
+                        <span className={`text-xs px-3 py-1 rounded-full font-medium ${
+                            report.deliveryStatus === "sent"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-red-100 text-red-800"
+                        }`}>
+                            Email: {report.deliveryStatus}
+                        </span>
+                    )}
+                </div>
+            )}
 
             {/* Printable Report */}
             <div ref={printRef} className="bg-cream-50 rounded-[20px] shadow-lg border border-sage-300 overflow-hidden print:shadow-none print:border-none print:rounded-none">

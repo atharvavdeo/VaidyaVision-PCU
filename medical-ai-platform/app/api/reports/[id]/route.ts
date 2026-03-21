@@ -25,7 +25,7 @@ export async function GET(
         const reportId = parseInt(params.id);
         const report = await db.query.reports.findFirst({
             where: eq(reports.id, reportId),
-            with: { scan: true, patient: true, doctor: true },
+            with: { scan: true, patient: true, doctor: true, hospitalTemplate: true },
         });
 
         if (!report) {
