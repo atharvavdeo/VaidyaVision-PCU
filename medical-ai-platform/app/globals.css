@@ -1,0 +1,89 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 26, 35, 17; /* olive-900 */
+  --background-start-rgb: 249, 249, 240; /* cream-50 */
+  --background-end-rgb: 243, 243, 232; /* cream-100 */
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+}
+
+@layer components {
+  .bento-card {
+    @apply bg-cream-100 border border-sage-300 border-dashed rounded-[20px] p-6;
+  }
+  
+  .bento-title {
+    @apply font-display font-medium text-xs uppercase tracking-[0.2em] text-olive-800 mb-4 pb-2 border-b border-sage-300 border-dashed w-full;
+  }
+  
+  .bento-value {
+    @apply font-display text-5xl font-semibold text-olive-900;
+  }
+
+  .btn-primary {
+    @apply bg-olive-800 text-cream-50 rounded-lg px-4 py-2 text-sm font-medium hover:bg-olive-700 transition-colors shadow-sm;
+  }
+
+  .btn-outline {
+    @apply border border-olive-800 text-olive-800 rounded-lg px-4 py-2 text-sm font-medium hover:bg-cream-200 transition-colors;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Animated Spiral Panel - Onboarding Page */
+.spiral {
+  position: absolute;
+  width: 300%;
+  height: 300%;
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 10px,
+    white 10px,
+    white 12px
+  );
+  opacity: 0.08;
+}
+
+.spiral-up {
+  animation: moveUp 20s linear infinite;
+}
+
+.spiral-down {
+  animation: moveDown 20s linear infinite;
+}
+
+@keyframes moveUp {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-50%);
+  }
+}
+
+@keyframes moveDown {
+  from {
+    transform: translateY(-50%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+

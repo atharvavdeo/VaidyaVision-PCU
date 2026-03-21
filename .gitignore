@@ -1,0 +1,49 @@
+# Large model files
+*.pth
+*.pt
+*.h5
+*.onnx
+*.bin
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+
+# Node
+node_modules/
+.next/
+out/
+build/
+dist/
+
+# Environment files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# IDE
+.vscode/
+.idea/
+
+# SQLite databases (contain user data)
+*.db
+*.db-shm
+*.db-wal
+
+# Uploads (user-uploaded files)
+medical-ai-platform/public/uploads/
+
+# Research cache
+medical-ai-platform/ml-service/research_cache/
+medical-ai-platform/ml-service/research_store/
