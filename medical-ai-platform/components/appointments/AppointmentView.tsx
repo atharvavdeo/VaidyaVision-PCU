@@ -5,6 +5,7 @@ import {
     Calendar, Clock, CheckCircle, XCircle, User, Plus, X, Search, Filter, ChevronRight
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import VoiceInputButton from "@/components/voice/VoiceInputButton";
 
 interface Appointment {
     id: number;
@@ -176,13 +177,27 @@ export default function AppointmentView({ userRole }: AppointmentPageProps) {
                             </div>
                             <div>
                                 <label className="text-xs font-bold text-olive-500 uppercase tracking-wider mb-1 block">Notes</label>
-                                <textarea
-                                    value={formData.notes}
-                                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                                    rows={3}
-                                    className="w-full px-4 py-3 bg-cream-50 border border-sage-200 rounded-xl focus:outline-none focus:border-olive-500 focus:ring-1 focus:ring-olive-500 transition resize-none"
-                                    placeholder="Add any details..."
-                                />
+                                <div className="relative">
+                                    <textarea
+                                        value={formData.notes}
+                                        onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                                        rows={3}
+                                        className="w-full px-4 py-3 pr-10 bg-cream-50 border border-sage-200 rounded-xl focus:outline-none focus:border-olive-500 focus:ring-1 focus:ring-olive-500 transition resize-none"
+                                        placeholder="Add any details..."
+                                    />
+                                    {userRole === "doctor" && (
+                                        <div className="absolute bottom-2 right-2">
+                                            <VoiceInputButton
+                                                onTranscript={() => {}}
+                                                mode="append-block"
+                                                currentValue={formData.notes}
+                                                onValueChange={(v: string) => setFormData({ ...formData, notes: v })}
+                                                compact
+                                                title="Dictate notes"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                             <button
                                 onClick={createAppointment}

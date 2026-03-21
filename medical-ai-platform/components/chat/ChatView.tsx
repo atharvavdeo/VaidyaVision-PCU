@@ -10,6 +10,7 @@ import {
     User,
     Loader2,
 } from "lucide-react";
+import VoiceInputButton from "@/components/voice/VoiceInputButton";
 
 interface Conversation {
     id: number;
@@ -297,14 +298,26 @@ export default function ChatView({ userRole }: ChatViewProps) {
                                     <Sparkles className="w-5 h-5" />
                                 )}
                             </button>
-                            <input
-                                type="text"
-                                value={input}
-                                onChange={(e) => setInput(e.target.value)}
-                                onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage()}
-                                placeholder="Type a message..."
-                                className="flex-1 px-4 py-2.5 bg-cream-100 rounded-xl text-sm border border-sage-300 text-olive-900 focus:outline-none focus:ring-2 focus:ring-olive-500 focus:border-transparent"
-                            />
+                            <div className="flex-1 relative">
+                                <input
+                                    type="text"
+                                    value={input}
+                                    onChange={(e) => setInput(e.target.value)}
+                                    onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage()}
+                                    placeholder="Type a message..."
+                                    className="w-full px-4 py-2.5 pr-10 bg-cream-100 rounded-xl text-sm border border-sage-300 text-olive-900 focus:outline-none focus:ring-2 focus:ring-olive-500 focus:border-transparent"
+                                />
+                                <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+                                    {userRole === "doctor" && (
+                                        <VoiceInputButton
+                                            onTranscript={(text: string) => sendMessage(text)}
+                                            mode="submit"
+                                            compact
+                                            title="Dictate message"
+                                        />
+                                    )}
+                                </div>
+                            </div>
                             <button
                                 onClick={() => sendMessage()}
                                 disabled={!input.trim() || sending}

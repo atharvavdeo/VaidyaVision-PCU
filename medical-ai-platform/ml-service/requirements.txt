@@ -15,3 +15,5 @@ firecrawl-py>=1.0.0
 sentence-transformers>=2.2.0
 chromadb>=0.4.0
 rank-bm25>=0.2.2
+# Speech-to-text (requires FFmpeg installed on host: brew install ffmpeg)
+faster-whisper>=1.0.0

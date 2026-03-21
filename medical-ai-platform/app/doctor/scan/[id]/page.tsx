@@ -22,8 +22,10 @@ import {
     Send,
     RefreshCw,
     Download,
-    Printer
+    Printer,
+    Mic
 } from "lucide-react";
+import VoiceInputButton from "@/components/voice/VoiceInputButton";
 
 export default function ScanReview() {
     const router = useRouter();
@@ -535,13 +537,25 @@ export default function ScanReview() {
                     {/* Doctor Notes */}
                     <div className="bento-card">
                         <h3 className="font-display font-bold text-olive-900 mb-3 text-sm uppercase tracking-wider">Doctor Notes</h3>
-                        <textarea
-                            value={doctorNotes}
-                            onChange={(e) => setDoctorNotes(e.target.value)}
-                            placeholder="Add clinical observations, recommendations..."
-                            rows={3}
-                            className="w-full px-4 py-3 border border-sage-300 rounded-xl text-sm bg-cream-50 text-olive-900 focus:ring-2 focus:ring-olive-500 outline-none resize-none"
-                        />
+                        <div className="relative">
+                            <textarea
+                                value={doctorNotes}
+                                onChange={(e) => setDoctorNotes(e.target.value)}
+                                placeholder="Add clinical observations, recommendations..."
+                                rows={3}
+                                className="w-full px-4 py-3 pr-10 border border-sage-300 rounded-xl text-sm bg-cream-50 text-olive-900 focus:ring-2 focus:ring-olive-500 outline-none resize-none"
+                            />
+                            <div className="absolute bottom-2 right-2">
+                                <VoiceInputButton
+                                    onTranscript={() => {}}
+                                    mode="append-block"
+                                    currentValue={doctorNotes}
+                                    onValueChange={setDoctorNotes}
+                                    compact
+                                    title="Dictate notes"
+                                />
+                            </div>
+                        </div>
                         <button
                             onClick={saveDoctorNotes}
                             className="mt-2 px-4 py-2 bg-olive-800 text-cream-50 rounded-lg text-xs font-bold uppercase tracking-wide hover:bg-olive-900 transition"

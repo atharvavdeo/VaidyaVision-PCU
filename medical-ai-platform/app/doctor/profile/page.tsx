@@ -11,6 +11,7 @@ import {
     Save,
     Loader2
 } from "lucide-react";
+import VoiceInputButton from "@/components/voice/VoiceInputButton";
 
 export default function DoctorProfilePage() {
     const { user } = useUser();
@@ -137,23 +138,45 @@ export default function DoctorProfilePage() {
                                     <label className="block text-xs font-bold text-olive-700 uppercase tracking-wide mb-2">
                                         Specialty
                                     </label>
-                                    <input
-                                        type="text"
-                                        value={profile.specialty}
-                                        onChange={(e) => setProfile({ ...profile, specialty: e.target.value })}
-                                        className="w-full bg-cream-50 border border-sage-300 rounded-lg px-4 py-3 text-olive-900 focus:outline-none focus:border-olive-800 transition"
-                                    />
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            value={profile.specialty}
+                                            onChange={(e) => setProfile({ ...profile, specialty: e.target.value })}
+                                            className="w-full bg-cream-50 border border-sage-300 rounded-lg px-4 py-3 pr-10 text-olive-900 focus:outline-none focus:border-olive-800 transition"
+                                        />
+                                        <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+                                            <VoiceInputButton
+                                                onTranscript={() => {}}
+                                                mode="replace"
+                                                currentValue={profile.specialty}
+                                                onValueChange={(v: string) => setProfile({ ...profile, specialty: v })}
+                                                compact
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-olive-700 uppercase tracking-wide mb-2">
                                         Degree / Qualification
                                     </label>
-                                    <input
-                                        type="text"
-                                        value={profile.degree}
-                                        onChange={(e) => setProfile({ ...profile, degree: e.target.value })}
-                                        className="w-full bg-cream-50 border border-sage-300 rounded-lg px-4 py-3 text-olive-900 focus:outline-none focus:border-olive-800 transition"
-                                    />
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            value={profile.degree}
+                                            onChange={(e) => setProfile({ ...profile, degree: e.target.value })}
+                                            className="w-full bg-cream-50 border border-sage-300 rounded-lg px-4 py-3 pr-10 text-olive-900 focus:outline-none focus:border-olive-800 transition"
+                                        />
+                                        <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+                                            <VoiceInputButton
+                                                onTranscript={() => {}}
+                                                mode="replace"
+                                                currentValue={profile.degree}
+                                                onValueChange={(v: string) => setProfile({ ...profile, degree: v })}
+                                                compact
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -162,12 +185,23 @@ export default function DoctorProfilePage() {
                                     <label className="block text-xs font-bold text-olive-700 uppercase tracking-wide mb-2">
                                         License Number
                                     </label>
-                                    <input
-                                        type="text"
-                                        value={profile.licenseNumber || ""}
-                                        onChange={(e) => setProfile({ ...profile, licenseNumber: e.target.value })}
-                                        className="w-full bg-cream-50 border border-sage-300 rounded-lg px-4 py-3 text-olive-900 focus:outline-none focus:border-olive-800 transition"
-                                    />
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            value={profile.licenseNumber || ""}
+                                            onChange={(e) => setProfile({ ...profile, licenseNumber: e.target.value })}
+                                            className="w-full bg-cream-50 border border-sage-300 rounded-lg px-4 py-3 pr-10 text-olive-900 focus:outline-none focus:border-olive-800 transition"
+                                        />
+                                        <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+                                            <VoiceInputButton
+                                                onTranscript={() => {}}
+                                                mode="replace"
+                                                currentValue={profile.licenseNumber || ""}
+                                                onValueChange={(v: string) => setProfile({ ...profile, licenseNumber: v })}
+                                                compact
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-olive-700 uppercase tracking-wide mb-2">

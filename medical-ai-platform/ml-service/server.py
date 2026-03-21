@@ -332,6 +332,29 @@ def research_export_qa():
         return {"status": "error", "error": str(e)}
 
 
+# ─── Speech-to-Text Endpoint ───────────────────────────────────
+
+from transcribe_service import transcribe_audio
+
+@app.post("/transcribe")
+async def transcribe_endpoint(
+    file: UploadFile = File(...),
+):
+    """
+    Transcribe an audio file (webm/opus) using faster-whisper.
+    Returns transcribed text with metadata.
+    """
+    try:
+        contents = await file.read()
+        if not contents:
+            return {"status": "error", "error": "Empty audio file"}
+        result = transcribe_audio(contents)
+        return result
+    except Exception as e:
+        traceback.print_exc()
+        return {"status": "error", "error": str(e)}
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

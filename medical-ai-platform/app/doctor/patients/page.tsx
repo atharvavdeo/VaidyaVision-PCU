@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Users, User, Scan, MessageSquare, Calendar, FileText, Plus, X, Loader2, Phone, Mail, Upload } from "lucide-react";
+import VoiceInputButton from "@/components/voice/VoiceInputButton";
 
 interface Patient {
     id: number;
@@ -119,12 +120,24 @@ export default function DoctorPatientsPage() {
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
                                     <label className="text-xs font-display font-bold text-olive-500 uppercase tracking-wider">Full Name *</label>
-                                    <input
-                                        value={newPatient.name}
-                                        onChange={(e) => setNewPatient({ ...newPatient, name: e.target.value })}
-                                        className="w-full mt-1 px-3 py-2.5 border border-sage-300 rounded-xl text-sm bg-cream-100 text-olive-900 focus:ring-2 focus:ring-olive-500 outline-none"
-                                        placeholder="Kawaljeet Singh"
-                                    />
+                                    <div className="relative">
+                                        <input
+                                            value={newPatient.name}
+                                            onChange={(e) => setNewPatient({ ...newPatient, name: e.target.value })}
+                                            className="w-full mt-1 px-3 py-2.5 pr-9 border border-sage-300 rounded-xl text-sm bg-cream-100 text-olive-900 focus:ring-2 focus:ring-olive-500 outline-none"
+                                            placeholder="Kawaljeet Singh"
+                                        />
+                                        <div className="absolute right-1.5 top-1/2 -translate-y-1/2 mt-0.5">
+                                            <VoiceInputButton
+                                                onTranscript={() => {}}
+                                                mode="replace"
+                                                currentValue={newPatient.name}
+                                                onValueChange={(v: string) => setNewPatient({ ...newPatient, name: v })}
+                                                compact
+                                                title="Dictate name"
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
                                 <div>
                                     <label className="text-xs font-display font-bold text-olive-500 uppercase tracking-wider">Email *</label>
@@ -181,13 +194,25 @@ export default function DoctorPatientsPage() {
                             </div>
                             <div>
                                 <label className="text-xs font-display font-bold text-olive-500 uppercase tracking-wider">Medical History</label>
-                                <textarea
-                                    value={newPatient.medicalHistory}
-                                    onChange={(e) => setNewPatient({ ...newPatient, medicalHistory: e.target.value })}
-                                    rows={2}
-                                    className="w-full mt-1 px-3 py-2.5 border border-sage-300 rounded-xl text-sm bg-cream-100 text-olive-900 focus:ring-2 focus:ring-olive-500 outline-none resize-none"
-                                    placeholder="Diabetes, Hypertension..."
-                                />
+                                <div className="relative">
+                                    <textarea
+                                        value={newPatient.medicalHistory}
+                                        onChange={(e) => setNewPatient({ ...newPatient, medicalHistory: e.target.value })}
+                                        rows={2}
+                                        className="w-full mt-1 px-3 py-2.5 pr-9 border border-sage-300 rounded-xl text-sm bg-cream-100 text-olive-900 focus:ring-2 focus:ring-olive-500 outline-none resize-none"
+                                        placeholder="Diabetes, Hypertension..."
+                                    />
+                                    <div className="absolute bottom-2 right-2">
+                                        <VoiceInputButton
+                                            onTranscript={() => {}}
+                                            mode="append-block"
+                                            currentValue={newPatient.medicalHistory}
+                                            onValueChange={(v: string) => setNewPatient({ ...newPatient, medicalHistory: v })}
+                                            compact
+                                            title="Dictate history"
+                                        />
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div className="flex gap-3 mt-5">
