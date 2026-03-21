@@ -41,6 +41,7 @@ const doctorNav: NavItem[] = [
     { label: "Patients",         href: "/doctor/patients",        icon: Users },
     { label: "Reports",          href: "/doctor/reports",         icon: FileText },
     { label: "Prescriptions",    href: "/doctor/prescriptions",   icon: ClipboardList },
+    { label: "Upload Rx",        href: "/doctor/scan/prescriptions", icon: Upload },
     { label: "Messages",         href: "/doctor/messages",        icon: MessageSquare },
     { label: "Appointments",     href: "/doctor/appointments",    icon: Calendar },
     { label: "Research",         href: "/doctor/research",        icon: BookOpen },
