@@ -199,7 +199,7 @@ async def ocr_clean_report(
 
         # Preserve OCR-level metadata
         ocr_confidence = ocr_result.get("confidence") if file and file.filename else None
-        ocr_method = ocr_result.get("method_used") if file and file.filename else None
+        ocr_method = ocr_result.get("method") if file and file.filename else None
 
         # Clean and structure with Groq
         cleaned = await clean_and_structure(text, document_type)
@@ -208,7 +208,7 @@ async def ocr_clean_report(
         if ocr_confidence is not None:
             result["confidence"] = ocr_confidence
         if ocr_method is not None:
-            result["method_used"] = ocr_method
+            result["method"] = ocr_method
         return result
 
     except Exception as e:
