@@ -47,17 +47,63 @@ _models_loaded = False
 _system = None
 
 
+def _extract_state_dict(checkpoint):
+    """Normalize checkpoints that may wrap the state dict under common keys."""
+    if isinstance(checkpoint, dict):
+        for key in ["state_dict", "model_state_dict", "model", "weights"]:
+            if key in checkpoint and isinstance(checkpoint[key], dict):
+                return checkpoint[key]
+    return checkpoint
+
+
+def _load_split_checkpoints(models_dir: str):
+    """Build a unified state_dict from individual router/expert checkpoint files."""
+    checkpoint_map = {
+        "router": "best_ModalityRouter.pth",
+        "brain": "best_BrainExpert.pth",
+        "lung": "best_LungExpert.pth",
+        "skin": "best_SkinExpert.pth",
+        "ecg": "best_ECGExpert.pth",
+    }
+
+    merged = {}
+
+    # Router keys become router.*
+    router_path = os.path.join(models_dir, checkpoint_map["router"])
+    router_ckpt = torch.load(router_path, map_location=DEVICE)
+    router_state = _extract_state_dict(router_ckpt)
+    for k, v in router_state.items():
+        merged[f"router.{k}"] = v
+
+    # Expert keys become experts.<modality>.*
+    for modality in ["brain", "lung", "skin", "ecg"]:
+        ckpt_path = os.path.join(models_dir, checkpoint_map[modality])
+        ckpt = torch.load(ckpt_path, map_location=DEVICE)
+        state = _extract_state_dict(ckpt)
+        for k, v in state.items():
+            merged[f"experts.{modality}.{k}"] = v
+
+    return merged
+
+
 def load_models(model_path: str):
-    """Load the unified ClinicalAIDiagnosticSystem from a single .pth file."""
+    """Load unified checkpoint, or fallback to split checkpoints in a models directory."""
     global _models_loaded, _system
 
     if _models_loaded:
         return
 
-    print(f"[INFO] Loading unified model from {model_path} on {DEVICE}...")
+    print(f"[INFO] Loading model(s) from {model_path} on {DEVICE}...")
 
     _system = ClinicalAIDiagnosticSystem(CLASS_COUNTS).to(DEVICE)
-    _system.load_state_dict(torch.load(model_path, map_location=DEVICE))
+
+    if os.path.isdir(model_path):
+        merged_state = _load_split_checkpoints(model_path)
+        _system.load_state_dict(merged_state, strict=True)
+    else:
+        checkpoint = torch.load(model_path, map_location=DEVICE)
+        _system.load_state_dict(_extract_state_dict(checkpoint), strict=True)
+
     _system.eval()
 
     print("  ✓ Router loaded")

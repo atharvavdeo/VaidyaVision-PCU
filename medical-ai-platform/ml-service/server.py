@@ -39,22 +39,41 @@ os.makedirs(HEATMAP_DIR, exist_ok=True)
 @app.on_event("startup")
 def startup():
     """Load the unified model at server startup."""
-    # Look for the unified checkpoint — try ml-service dir first, then project root, then parent
+    # Prefer unified checkpoint; fallback to split expert checkpoints in models/.
     base = os.path.dirname(os.path.abspath(__file__))
-    candidates = [
+    unified_candidates = [
         os.path.join(base, "medical_ai_system_final.pth"),
         os.path.join(base, "models", "medical_ai_system_final.pth"),
         os.path.join(base, "..", "..", "medical_ai_system_final.pth"),
     ]
     model_path = None
-    for c in candidates:
+    for c in unified_candidates:
         if os.path.isfile(c):
             model_path = c
             break
 
     if model_path is None:
+        split_candidates = [
+            os.path.join(base, "models"),
+            os.path.join(base, "..", "models"),
+        ]
+        for d in split_candidates:
+            required = [
+                os.path.join(d, "best_ModalityRouter.pth"),
+                os.path.join(d, "best_BrainExpert.pth"),
+                os.path.join(d, "best_LungExpert.pth"),
+                os.path.join(d, "best_SkinExpert.pth"),
+                os.path.join(d, "best_ECGExpert.pth"),
+            ]
+            if all(os.path.isfile(p) for p in required):
+                model_path = d
+                break
+
+    if model_path is None:
         raise FileNotFoundError(
-            f"Cannot find medical_ai_system_final.pth. Searched: {candidates}"
+            "Cannot find model checkpoints. Searched unified files: "
+            f"{unified_candidates}. Also checked split checkpoints in: "
+            f"{[os.path.join(base, 'models'), os.path.join(base, '..', 'models')]}"
         )
 
     load_models(model_path)
