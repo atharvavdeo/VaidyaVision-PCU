@@ -3,6 +3,9 @@ FastAPI server for VaidyaVision ML inference + Medical OCR.
 Uses the real inference pipeline with GradCAM and MC Dropout.
 Includes OCR extraction and Groq-powered report cleaning.
 """
+from dotenv import load_dotenv
+import os
+load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env.local"))
 
 from fastapi import FastAPI, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
