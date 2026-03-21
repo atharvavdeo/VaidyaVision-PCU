@@ -3,11 +3,12 @@ import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { messages, conversations, users, notifications } from "@/lib/db/schema";
 import { eq, asc } from "drizzle-orm";
+import { getAuthUser } from "@/lib/api-auth";
 
 // GET /api/conversations/[id]/messages — Get all messages in a conversation
 export async function GET(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const { userId } = await auth();
@@ -15,7 +16,8 @@ export async function GET(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const conversationId = parseInt(params.id);
+        const { id } = await params;
+        const conversationId = parseInt(id);
         if (isNaN(conversationId)) {
             return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
         }
@@ -36,22 +38,16 @@ export async function GET(
 // POST /api/conversations/[id]/messages — Send a message
 export async function POST(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const { userId } = await auth();
-        if (!userId) {
+        const user = await getAuthUser();
+        if (!user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const user = await db.query.users.findFirst({
-            where: eq(users.clerkId, userId),
-        });
-        if (!user) {
-            return NextResponse.json({ error: "User not found" }, { status: 404 });
-        }
-
-        const conversationId = parseInt(params.id);
+        const { id } = await params;
+        const conversationId = parseInt(id);
         if (isNaN(conversationId)) {
             return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
         }

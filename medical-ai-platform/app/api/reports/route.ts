@@ -3,26 +3,19 @@ import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { reports, scans, users, hospitalReportTemplates } from "@/lib/db/schema";
 import { eq, desc, and } from "drizzle-orm";
+import { getAuthUser } from "@/lib/api-auth";
 
 // GET /api/reports — List reports
 export async function GET() {
     try {
-        const { userId } = await auth();
-        if (!userId) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
-        const user = await db.query.users.findFirst({
-            where: eq(users.clerkId, userId),
-        });
+        const user = await getAuthUser();
         if (!user) {
-            return NextResponse.json({ error: "User not found" }, { status: 404 });
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         let reportList;
         if (user.role === "doctor") {
             reportList = await db.query.reports.findMany({
-                where: eq(reports.doctorId, user.id),
                 with: { scan: true, patient: true, doctor: true },
                 orderBy: [desc(reports.createdAt)],
             });
@@ -44,14 +37,10 @@ export async function GET() {
 // POST /api/reports — Doctor creates a report from a scan
 export async function POST(req: NextRequest) {
     try {
-        const { userId } = await auth();
-        if (!userId) {
+        const user = await getAuthUser();
+        if (!user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
-
-        const user = await db.query.users.findFirst({
-            where: eq(users.clerkId, userId),
-        });
         if (!user || user.role !== "doctor") {
             return NextResponse.json({ error: "Doctor access only" }, { status: 403 });
         }

@@ -3,17 +3,14 @@ import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { scans, users } from "@/lib/db/schema";
 import { eq, and, count, gte, desc } from "drizzle-orm";
+import { getAuthUser } from "@/lib/api-auth";
 
 export async function GET() {
     try {
-        const { userId } = await auth();
-        if (!userId) {
+        const user = await getAuthUser();
+        if (!user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
-
-        const user = await db.query.users.findFirst({
-            where: eq(users.clerkId, userId),
-        });
 
         if (!user || user.role !== "doctor") {
             return NextResponse.json({ error: "Unauthorized - Doctor only" }, { status: 403 });

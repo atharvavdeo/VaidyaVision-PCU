@@ -32,9 +32,15 @@ export default function DoctorQueuePage() {
                 const res = await fetch("/api/scans?status=pending");
                 const data = await res.json();
 
+                const queueItems = Array.isArray(data)
+                    ? data
+                    : Array.isArray(data?.scans)
+                        ? data.scans
+                        : [];
+
                 // Client-side Smart Triage Sorting
                 // (Server-side is better, but this demonstrates the logic)
-                const sorted = data.sort((a: any, b: any) => {
+                const sorted = [...queueItems].sort((a: any, b: any) => {
                     const priorityScore: any = {
                         critical: 4,
                         high: 3,

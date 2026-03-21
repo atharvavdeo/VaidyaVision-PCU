@@ -3,20 +3,14 @@ import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { conversations, users, messages } from "@/lib/db/schema";
 import { eq, or, desc } from "drizzle-orm";
+import { getAuthUser } from "@/lib/api-auth";
 
 // GET /api/conversations — List conversations for current user
 export async function GET() {
     try {
-        const { userId } = await auth();
-        if (!userId) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
-        const user = await db.query.users.findFirst({
-            where: eq(users.clerkId, userId),
-        });
+        const user = await getAuthUser();
         if (!user) {
-            return NextResponse.json({ error: "User not found" }, { status: 404 });
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         const convos = await db.query.conversations.findMany({
@@ -45,16 +39,9 @@ export async function GET() {
 // POST /api/conversations — Create or find existing conversation
 export async function POST(req: NextRequest) {
     try {
-        const { userId } = await auth();
-        if (!userId) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
-        const user = await db.query.users.findFirst({
-            where: eq(users.clerkId, userId),
-        });
+        const user = await getAuthUser();
         if (!user) {
-            return NextResponse.json({ error: "User not found" }, { status: 404 });
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         const body = await req.json();

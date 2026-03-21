@@ -63,7 +63,7 @@ export default function ReportList({ userRole }: ReportListProps) {
             <div>
                 <h1 className="text-2xl font-display font-bold text-olive-900">Medical Reports</h1>
                 <p className="text-olive-500 text-sm mt-1">
-                    {userRole === "doctor" ? "Reports you've created" : "Reports from your doctors"}
+                    {userRole === "doctor" ? "All reports in your workspace" : "Reports from your doctors"}
                 </p>
             </div>
 

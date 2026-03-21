@@ -7,23 +7,17 @@ export default function MarketingLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="h-screen bg-[#000000] p-4 lg:p-8 overflow-hidden">
-      <div className="relative h-full w-full rounded-[3rem] bg-[#f4f4f4] text-black selection:bg-green-500/30 overflow-hidden shadow-2xl ring-1 ring-white/10 isolate">
+    <div className="min-h-screen bg-[#000000] p-4 lg:p-8">
+      <div className="relative min-h-[calc(100vh-2rem)] w-full rounded-[3rem] bg-[#f4f4f4] text-black selection:bg-green-500/30 shadow-2xl ring-1 ring-white/10 isolate">
         <MouseFollower />
         
-        {/* Navigation - Stays at the top */}
-        <div className="absolute top-0 left-0 right-0 z-50 pointer-events-none">
+        <div className="sticky top-0 z-50 pointer-events-none">
           <div className="pointer-events-auto">
             <Navbar />
           </div>
         </div>
-        
-        {/* Page Content - Scrollable */}
-        <div className="absolute inset-0 overflow-y-auto z-10">
-          <main className="relative min-h-full">
-            {children}
-          </main>
-        </div>
+
+        <main className="relative z-10">{children}</main>
       </div>
     </div>
   );

@@ -3,27 +3,25 @@ import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { users, scans, reports, appointments } from "@/lib/db/schema";
 import { eq, and, desc } from "drizzle-orm";
+import { getAuthUser } from "@/lib/api-auth";
 
 // GET /api/doctor/patients/[id] — Get patient details + full scan/report history
 export async function GET(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const { userId } = await auth();
-        if (!userId) {
+        const currentUser = await getAuthUser();
+        if (!currentUser) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
-
-        const currentUser = await db.query.users.findFirst({
-            where: eq(users.clerkId, userId),
-        });
 
         if (!currentUser || currentUser.role !== "doctor") {
             return NextResponse.json({ error: "Doctor access only" }, { status: 403 });
         }
 
-        const patientId = parseInt(params.id);
+        const { id } = await params;
+        const patientId = parseInt(id);
         if (isNaN(patientId)) {
             return NextResponse.json({ error: "Invalid patient ID" }, { status: 400 });
         }

@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { users, hospitalMemberships, hospitals, specialties } from "@/lib/db/schema";
@@ -23,11 +23,41 @@ export async function getAuthUser(): Promise<DbUser | null> {
         const { userId } = await auth();
         if (!userId) return null;
 
-        const user = await db.query.users.findFirst({
+        const existingByClerkId = await db.query.users.findFirst({
             where: eq(users.clerkId, userId),
         });
 
-        return user ?? null;
+        if (existingByClerkId) {
+            return existingByClerkId;
+        }
+
+        // Fallback: link existing DB user by Clerk primary email.
+        // This is useful when restoring a seeded SQLite DB whose clerk_id values
+        // do not match the currently signed-in Clerk instance.
+        const clerk = await currentUser();
+        const primaryEmail = clerk?.primaryEmailAddress?.emailAddress?.trim().toLowerCase();
+        if (!primaryEmail) return null;
+
+        const existingByEmail = await db.query.users.findFirst({
+            where: eq(users.email, primaryEmail),
+        });
+
+        if (!existingByEmail) return null;
+
+        await db
+            .update(users)
+            .set({
+                clerkId: userId,
+                name: existingByEmail.name || clerk?.fullName || primaryEmail,
+                imageUrl: existingByEmail.imageUrl || clerk?.imageUrl || null,
+            })
+            .where(eq(users.id, existingByEmail.id));
+
+        const relinked = await db.query.users.findFirst({
+            where: eq(users.id, existingByEmail.id),
+        });
+
+        return relinked ?? null;
     } catch {
         return null;
     }

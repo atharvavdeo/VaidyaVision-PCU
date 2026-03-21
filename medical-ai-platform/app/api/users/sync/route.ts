@@ -34,6 +34,26 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ id: existing.id, updated: true });
         }
 
+        // Fallback: if a seeded user exists by email, relink clerkId.
+        if (email) {
+            const byEmail = await db.query.users.findFirst({
+                where: eq(users.email, email),
+            });
+
+            if (byEmail) {
+                await db
+                    .update(users)
+                    .set({
+                        clerkId: userId,
+                        name: name || byEmail.name,
+                        imageUrl: imageUrl || byEmail.imageUrl,
+                    })
+                    .where(eq(users.id, byEmail.id));
+
+                return NextResponse.json({ id: byEmail.id, relinked: true });
+            }
+        }
+
         // Create new user (default role = patient, not yet onboarded)
         const [newUser] = await db
             .insert(users)
