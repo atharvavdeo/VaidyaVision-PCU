@@ -143,6 +143,14 @@
 - ✅ Weekly slot booking
 - ✅ Appointment confirmation with follow-up scheduling
 
+### **12. Multi-Hospital Tenancy & Role Workflows (v2 Upgrade)**
+- ✅ Multi-Hospital Tenancy (`hospitals`, `hospital_memberships`)
+- ✅ Strict Role-Based API Boundaries (Patient vs. Clinical Projections)
+- ✅ Pathologist Portal: 4-step wizard for rapid clinical uploads with bulk background processing.
+- ✅ Doctor Inbox Engine: Status priority filters, GradCAM interactive viewport, fully versioned Report Builder.
+- ✅ HIPAA-Compliant Ledger: Immutable snapshot generation for every `signed` and `released` diagnostic report.
+- ✅ Patient-Safe UI: Strips clinical jargon and internal notes, extracting only Doctor-approved notes and JSON-parsed medication reminders.
+
 ### **12. Demo Data**
 - ✅ Pre-seeded doctor account (Dr. Atharva Deo)
 - ✅ 5 demo patients (Kawaljeet, Akshat, Priya, Rahul, Sneha)
@@ -246,8 +254,8 @@ graph TB
 
     subgraph "Data Storage"
         J[SQLite Database — Drizzle ORM]
-        J1[Users & Profiles]
-        J2[Scans & Reports]
+        J1[Users, Profiles & Hospitals (Tenancy)]
+        J2[Cases, Artifacts & Immutable Reports]
         J3[Prescriptions & Medications]
         J4[Conversations & Messages]
         J5[Appointments & Follow-Ups]
@@ -625,46 +633,66 @@ graph TB
 ```typescript
 // Source: lib/db/schema.ts
 
-// ─── Core Identity ──────────────────────────────────────────────
+// ─── Multi-Tenant Hospital Base ─────────────────────────────────
+
+hospitals
+├─ id (PK), name, city, state, code (unique), logoUrl
+├─ settingsJson
+
+hospitalMemberships
+├─ id (PK)
+├─ userId → users.id, hospitalId → hospitals.id
+├─ status: "pending" | "active" | "suspended"
+├─ membershipRole: "doctor" | "pathologist" | "hospital_admin"
+├─ isPrimary (boolean)
+
+patientsHospitals (Junction)
+├─ patientId → users.id, hospitalId → hospitals.id
+├─ mrn (Medical Record Number)
+├─ status
+
+// ─── Core Medical identity ──────────────────────────────────────
 
 users
 ├─ id (PK, autoincrement)
 ├─ clerkId (unique, not null)
-├─ role: "patient" | "doctor" | "admin"
+├─ role: "patient" | "doctor" | "admin" | "pathologist"
 ├─ name, email (unique), imageUrl, phone
-├─ specialty (doctor only)
-├─ age, gender, bloodType, medicalHistory
-├─ isOnboarded (boolean)
-├─ createdAt (timestamp)
 
-doctorProfiles
-├─ id (PK), userId → users.id (unique)
-├─ specialty, degree, experience
-├─ licenseNumber, rating (default 5.0)
-├─ totalConsultations, totalScansReviewed
+// ─── Case-Based Clinical Workflows (v2 Architecture) ────────────
 
-// ─── Medical Imaging ────────────────────────────────────────────
-
-scans
+cases
 ├─ id (PK)
-├─ patientId → users.id, doctorId → users.id
-├─ imageUrl, modality: "brain" | "lung" | "skin" | "ecg"
-├─ status: "pending" | "processing" | "completed" | "rejected"
+├─ hospitalId → hospitals.id, patientId → users.id
+├─ status: "new" | "triaged" | "assigned" | "in_review" | "signed" | "released" | "closed"
 ├─ priority: "low" | "medium" | "high" | "critical"
-├─ symptoms, triageScore
-├─ aiDiagnosis, aiConfidence, aiUncertainty
-├─ heatmapUrl, expertUsed
-├─ doctorNotes, originalFilename
-├─ uploadedAt, reviewedAt (timestamps)
+├─ presentingComplaint, internalSummary, sourceRole
 
-reports
-├─ id (PK)
-├─ scanId → scans.id, patientId → users.id, doctorId → users.id
-├─ diagnosis, findings, recommendations
-├─ severity: "low" | "moderate" | "high" | "critical"
-├─ status: "draft" | "signed"
-├─ language, templateId → templates.id
-├─ signedAt, pdfUrl, createdAt
+caseAssignments
+├─ id (PK), caseId → cases.id
+├─ assignedToMembershipId → hospitalMemberships.id
+├─ status: "assigned" | "accepted" | "completed" | "revoked"
+
+caseArtifacts
+├─ id (PK), caseId → cases.id
+├─ artifactType: "scan_image" | "pathology_image" | "prescription_image" | "lab_pdf" | "other"
+├─ processingPipeline: "none" | "ml_scan" | "ocr_doc" | "external"
+├─ status: "uploaded" | "processing" | "processed" | "failed"
+├─ processingResultJson (Raw ML Output, GradCAM)
+├─ patientVisible (boolean)
+
+caseReports
+├─ id (PK), caseId → cases.id
+├─ status: "draft" | "signed" | "released" | "archived"
+├─ contentJson (Doctor's private clinical findings)
+├─ patientSummary (Public bedside notes)
+├─ releasedMedicationsJson (Structured JSON medication array)
+
+caseReportVersions
+├─ id (PK), reportId → caseReports.id
+├─ Immutable Ledger Snapshot (contentJson, patientSummary, etc.)
+
+// ─── Legacy Imaging (Deprecated in v2) ──────────────────────────
 
 templates
 ├─ id (PK), name, structureJson (JSON), language

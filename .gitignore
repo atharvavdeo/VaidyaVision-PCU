@@ -36,10 +36,7 @@ npm-debug.log*
 .vscode/
 .idea/
 
-# SQLite databases (contain user data)
-*.db
-*.db-shm
-*.db-wal
+# SQLite databases allowed to be pushed as per user request
 
 # Uploads (user-uploaded files)
 medical-ai-platform/public/uploads/

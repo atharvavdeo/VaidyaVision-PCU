@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, real, uniqueIndex, index } from "drizzle-orm/sqlite-core";
 import { eq, relations, sql } from "drizzle-orm";
 
 // =====================================================
@@ -7,11 +7,12 @@ import { eq, relations, sql } from "drizzle-orm";
 export const users = sqliteTable("users", {
     id: integer("id").primaryKey({ autoIncrement: true }),
     clerkId: text("clerk_id").unique().notNull(),
-    role: text("role", { enum: ["patient", "doctor", "admin"] }).notNull(),
+    role: text("role", { enum: ["patient", "doctor", "admin", "pathologist", "hospital_admin"] }).notNull(),
     name: text("name").notNull(),
     email: text("email").unique().notNull(),
     imageUrl: text("image_url"),
-    specialty: text("specialty"), // doctor only
+    specialty: text("specialty"), // doctor only — legacy, see specialties table
+    hospitalId: integer("hospital_id"), // nullable bridge — PR1
     age: integer("age"),
     gender: text("gender"),
     bloodType: text("blood_type"),
@@ -27,7 +28,8 @@ export const users = sqliteTable("users", {
 export const doctorProfiles = sqliteTable("doctor_profiles", {
     id: integer("id").primaryKey({ autoIncrement: true }),
     userId: integer("user_id").references(() => users.id).notNull().unique(),
-    specialty: text("specialty").notNull().default("General Medicine"),
+    specialty: text("specialty").notNull().default("General Medicine"), // legacy — see specialties table
+    specialtyId: integer("specialty_id"), // nullable bridge — PR1
     degree: text("degree").notNull().default("MBBS"),
     experience: integer("experience").default(0),
     licenseNumber: text("license_number"),
@@ -58,6 +60,10 @@ export const scans = sqliteTable("scans", {
     originalFilename: text("original_filename"),
     uploadedAt: integer("uploaded_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
     reviewedAt: integer("reviewed_at", { mode: "timestamp" }),
+    // PR4 bridge columns
+    hospitalId: integer("hospital_id"),
+    caseId: integer("case_id"),
+    sourceArtifactId: integer("source_artifact_id"),
 });
 
 // =====================================================
@@ -78,6 +84,8 @@ export const reports = sqliteTable("reports", {
     signedAt: integer("signed_at", { mode: "timestamp" }),
     pdfUrl: text("pdf_url"),
     createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+    // PR4 bridge column
+    caseId: integer("case_id"),
 });
 
 // =====================================================
@@ -89,6 +97,8 @@ export const conversations = sqliteTable("conversations", {
     doctorId: integer("doctor_id").references(() => users.id).notNull(),
     lastMessageAt: integer("last_message_at", { mode: "timestamp" }),
     createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+    // PR4 bridge column
+    hospitalId: integer("hospital_id"),
 });
 
 // =====================================================
@@ -115,6 +125,8 @@ export const appointments = sqliteTable("appointments", {
     notes: text("notes"),
     status: text("status", { enum: ["scheduled", "confirmed", "completed", "cancelled"] }).notNull().default("scheduled"),
     createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+    // PR4 bridge column
+    hospitalId: integer("hospital_id"),
 });
 
 // =====================================================
@@ -133,7 +145,7 @@ export const templates = sqliteTable("templates", {
 export const notifications = sqliteTable("notifications", {
     id: integer("id").primaryKey({ autoIncrement: true }),
     userId: integer("user_id").references(() => users.id).notNull(),
-    type: text("type", { enum: ["scan_ready", "report_signed", "urgent_alert", "message_received", "appointment", "appointment_scheduled", "scan_completed"] }).notNull(),
+    type: text("type", { enum: ["scan_ready", "report_signed", "urgent_alert", "message_received", "appointment", "appointment_scheduled", "scan_completed", "case_assigned"] }).notNull(),
     message: text("message").notNull(),
     link: text("link"),
     isRead: integer("is_read", { mode: "boolean" }).notNull().default(false),
@@ -246,6 +258,10 @@ export const prescriptions = sqliteTable("prescriptions", {
     prescribingDoctor: text("prescribing_doctor"),
     prescriptionDate: text("prescription_date"),
     uploadedAt: text("uploaded_at").notNull().default(sql`(datetime('now'))`),
+    // PR4 bridge columns
+    hospitalId: integer("hospital_id"),
+    caseId: integer("case_id"),
+    sourceArtifactId: integer("source_artifact_id"),
 });
 
 export const prescriptionsRelations = relations(prescriptions, ({ one, many }) => ({
@@ -369,4 +385,345 @@ export const apiKeys = sqliteTable("api_keys", {
 
 export const apiKeysRelations = relations(apiKeys, ({ one }) => ({
     user: one(users, { fields: [apiKeys.userId], references: [users.id] }),
+}));
+
+// =====================================================
+// PR1: HOSPITAL FOUNDATION
+// =====================================================
+
+// =====================================================
+// HOSPITALS
+// =====================================================
+export const hospitals = sqliteTable("hospitals", {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    code: text("code").unique().notNull(),
+    slug: text("slug").unique().notNull(),
+    name: text("name").notNull(),
+    type: text("type", { enum: ["hospital", "clinic", "diagnostic_center", "lab"] }).notNull().default("hospital"),
+    addressLine1: text("address_line_1"),
+    addressLine2: text("address_line_2"),
+    locality: text("locality"),
+    city: text("city"),
+    state: text("state"),
+    pincode: text("pincode"),
+    country: text("country").default("India"),
+    phone: text("phone"),
+    email: text("email"),
+    website: text("website"),
+    logoUrl: text("logo_url"),
+    reportHeaderUrl: text("report_header_url"),
+    reportFooterUrl: text("report_footer_url"),
+    isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+});
+
+export const hospitalsRelations = relations(hospitals, ({ many }) => ({
+    departments: many(departments),
+    memberships: many(hospitalMemberships),
+    patientLinks: many(patientHospitalLinks),
+}));
+
+// =====================================================
+// DEPARTMENTS
+// =====================================================
+export const departments = sqliteTable("departments", {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    hospitalId: integer("hospital_id").references(() => hospitals.id).notNull(),
+    code: text("code").notNull(),
+    name: text("name").notNull(),
+    isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+});
+
+export const departmentsRelations = relations(departments, ({ one }) => ({
+    hospital: one(hospitals, { fields: [departments.hospitalId], references: [hospitals.id] }),
+}));
+
+// =====================================================
+// SPECIALTIES
+// =====================================================
+export const specialties = sqliteTable("specialties", {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    code: text("code").unique().notNull(),
+    name: text("name").notNull(),
+    departmentGroup: text("department_group"),
+    isDiagnostic: integer("is_diagnostic", { mode: "boolean" }).notNull().default(false),
+    isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+});
+
+// =====================================================
+// HOSPITAL MEMBERSHIPS
+// =====================================================
+export const hospitalMemberships = sqliteTable("hospital_memberships", {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    userId: integer("user_id").references(() => users.id).notNull(),
+    hospitalId: integer("hospital_id").references(() => hospitals.id).notNull(),
+    departmentId: integer("department_id").references(() => departments.id),
+    specialtyId: integer("specialty_id").references(() => specialties.id),
+    membershipRole: text("membership_role", { enum: ["doctor", "pathologist", "hospital_admin"] }).notNull(),
+    title: text("title"),
+    employeeCode: text("employee_code"),
+    licenseNumber: text("license_number"),
+    status: text("status", { enum: ["pending", "active", "inactive", "rejected"] }).notNull().default("active"),
+    isPrimary: integer("is_primary", { mode: "boolean" }).notNull().default(false),
+    joinedAt: integer("joined_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+}, (table) => ({
+    uniqueMembership: uniqueIndex("hm_user_hospital_role").on(table.userId, table.hospitalId, table.membershipRole),
+    idxHospitalRoleStatus: index("hm_hospital_role_status").on(table.hospitalId, table.membershipRole, table.status),
+}));
+
+export const hospitalMembershipsRelations = relations(hospitalMemberships, ({ one }) => ({
+    user: one(users, { fields: [hospitalMemberships.userId], references: [users.id] }),
+    hospital: one(hospitals, { fields: [hospitalMemberships.hospitalId], references: [hospitals.id] }),
+    department: one(departments, { fields: [hospitalMemberships.departmentId], references: [departments.id] }),
+    specialty: one(specialties, { fields: [hospitalMemberships.specialtyId], references: [specialties.id] }),
+}));
+
+// =====================================================
+// PATIENT-HOSPITAL LINKS
+// =====================================================
+export const patientHospitalLinks = sqliteTable("patient_hospital_links", {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    patientId: integer("patient_id").references(() => users.id).notNull(),
+    hospitalId: integer("hospital_id").references(() => hospitals.id).notNull(),
+    mrn: text("mrn"),
+    primaryDoctorMembershipId: integer("primary_doctor_membership_id").references(() => hospitalMemberships.id),
+    status: text("status", { enum: ["active", "inactive", "discharged"] }).notNull().default("active"),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+}, (table) => ({
+    uniquePatientHospital: uniqueIndex("phl_patient_hospital").on(table.patientId, table.hospitalId),
+    idxHospitalDoctor: index("phl_hospital_doctor").on(table.hospitalId, table.primaryDoctorMembershipId),
+}));
+
+export const patientHospitalLinksRelations = relations(patientHospitalLinks, ({ one }) => ({
+    patient: one(users, { fields: [patientHospitalLinks.patientId], references: [users.id] }),
+    hospital: one(hospitals, { fields: [patientHospitalLinks.hospitalId], references: [hospitals.id] }),
+    primaryDoctorMembership: one(hospitalMemberships, { fields: [patientHospitalLinks.primaryDoctorMembershipId], references: [hospitalMemberships.id] }),
+}));
+
+// =====================================================
+// PR4: CASE WORKFLOW
+// =====================================================
+
+// =====================================================
+// CASES
+// =====================================================
+export const cases = sqliteTable("cases", {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    hospitalId: integer("hospital_id").references(() => hospitals.id).notNull(),
+    patientId: integer("patient_id").references(() => users.id).notNull(),
+    createdByUserId: integer("created_by_user_id").references(() => users.id).notNull(),
+    createdByMembershipId: integer("created_by_membership_id").references(() => hospitalMemberships.id),
+    sourceRole: text("source_role", { enum: ["doctor", "pathologist", "patient", "system"] }).notNull(),
+    primarySpecialtyId: integer("primary_specialty_id").references(() => specialties.id),
+    primaryDoctorMembershipId: integer("primary_doctor_membership_id").references(() => hospitalMemberships.id),
+    title: text("title"),
+    presentingComplaint: text("presenting_complaint"),
+    internalSummary: text("internal_summary"),
+    status: text("status", { enum: ["new", "triaged", "assigned", "in_review", "signed", "released", "closed"] }).notNull().default("new"),
+    priority: text("priority", { enum: ["low", "medium", "high", "critical"] }).notNull().default("medium"),
+    patientVisibilityStatus: text("patient_visibility_status", { enum: ["hidden", "released"] }).notNull().default("hidden"),
+    openedAt: integer("opened_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+    closedAt: integer("closed_at", { mode: "timestamp" }),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+}, (table) => ({
+    idxHospitalStatusPriority: index("cases_hospital_status_priority").on(table.hospitalId, table.status, table.priority, table.createdAt),
+    idxPatientCreated: index("cases_patient_created").on(table.patientId, table.createdAt),
+}));
+
+export const casesRelations = relations(cases, ({ one, many }) => ({
+    hospital: one(hospitals, { fields: [cases.hospitalId], references: [hospitals.id] }),
+    patient: one(users, { fields: [cases.patientId], references: [users.id] }),
+    createdByUser: one(users, { fields: [cases.createdByUserId], references: [users.id] }),
+    createdByMembership: one(hospitalMemberships, { fields: [cases.createdByMembershipId], references: [hospitalMemberships.id] }),
+    primarySpecialty: one(specialties, { fields: [cases.primarySpecialtyId], references: [specialties.id] }),
+    primaryDoctorMembership: one(hospitalMemberships, { fields: [cases.primaryDoctorMembershipId], references: [hospitalMemberships.id] }),
+    artifacts: many(caseArtifacts),
+    assignments: many(caseAssignments),
+    reports: many(caseReports),
+}));
+
+// =====================================================
+// CASE ARTIFACTS
+// =====================================================
+export const caseArtifacts = sqliteTable("case_artifacts", {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    caseId: integer("case_id").references(() => cases.id).notNull(),
+    hospitalId: integer("hospital_id").references(() => hospitals.id).notNull(),
+    patientId: integer("patient_id").references(() => users.id).notNull(),
+    uploadedByUserId: integer("uploaded_by_user_id").references(() => users.id).notNull(),
+    uploadedByMembershipId: integer("uploaded_by_membership_id").references(() => hospitalMemberships.id),
+    artifactType: text("artifact_type", { enum: ["scan_image", "pathology_image", "lab_pdf", "prescription_image", "report_pdf", "other"] }).notNull(),
+    processingPipeline: text("processing_pipeline", { enum: ["ml_scan", "ocr_doc", "none"] }).notNull().default("none"),
+    fileUrl: text("file_url").notNull(),
+    thumbnailUrl: text("thumbnail_url"),
+    mimeType: text("mime_type"),
+    originalFilename: text("original_filename"),
+    sizeBytes: integer("size_bytes"),
+    modalityHint: text("modality_hint"),
+    status: text("status", { enum: ["uploaded", "processing", "processed", "failed"] }).notNull().default("uploaded"),
+    processingResultJson: text("processing_result_json"),
+    patientVisible: integer("patient_visible", { mode: "boolean" }).notNull().default(false),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+}, (table) => ({
+    idxCaseStatus: index("ca_case_status").on(table.caseId, table.status),
+    idxCaseType: index("ca_case_type").on(table.caseId, table.artifactType, table.status),
+}));
+
+export const caseArtifactsRelations = relations(caseArtifacts, ({ one }) => ({
+    case_: one(cases, { fields: [caseArtifacts.caseId], references: [cases.id] }),
+    hospital: one(hospitals, { fields: [caseArtifacts.hospitalId], references: [hospitals.id] }),
+    patient: one(users, { fields: [caseArtifacts.patientId], references: [users.id] }),
+    uploadedByUser: one(users, { fields: [caseArtifacts.uploadedByUserId], references: [users.id] }),
+    uploadedByMembership: one(hospitalMemberships, { fields: [caseArtifacts.uploadedByMembershipId], references: [hospitalMemberships.id] }),
+}));
+
+// =====================================================
+// CASE ASSIGNMENTS
+// =====================================================
+export const caseAssignments = sqliteTable("case_assignments", {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    caseId: integer("case_id").references(() => cases.id).notNull(),
+    assignedToMembershipId: integer("assigned_to_membership_id").references(() => hospitalMemberships.id).notNull(),
+    assignedByUserId: integer("assigned_by_user_id").references(() => users.id).notNull(),
+    specialtyId: integer("specialty_id").references(() => specialties.id),
+    assignmentType: text("assignment_type", { enum: ["primary", "consult", "review"] }).notNull().default("primary"),
+    reason: text("reason"),
+    status: text("status", { enum: ["pending", "accepted", "completed", "reassigned"] }).notNull().default("pending"),
+    dueAt: integer("due_at", { mode: "timestamp" }),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+    acceptedAt: integer("accepted_at", { mode: "timestamp" }),
+    completedAt: integer("completed_at", { mode: "timestamp" }),
+}, (table) => ({
+    uniqueAssignment: uniqueIndex("cas_case_member_type").on(table.caseId, table.assignedToMembershipId, table.assignmentType),
+    idxMemberStatus: index("cas_member_status").on(table.assignedToMembershipId, table.status, table.createdAt),
+}));
+
+export const caseAssignmentsRelations = relations(caseAssignments, ({ one }) => ({
+    case_: one(cases, { fields: [caseAssignments.caseId], references: [cases.id] }),
+    assignedToMembership: one(hospitalMemberships, { fields: [caseAssignments.assignedToMembershipId], references: [hospitalMemberships.id] }),
+    assignedByUser: one(users, { fields: [caseAssignments.assignedByUserId], references: [users.id] }),
+    specialty: one(specialties, { fields: [caseAssignments.specialtyId], references: [specialties.id] }),
+}));
+
+// =====================================================
+// PR5: TEAM LAYER
+// =====================================================
+
+export const careTeams = sqliteTable("care_teams", {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    hospitalId: integer("hospital_id").references(() => hospitals.id).notNull(),
+    patientId: integer("patient_id").references(() => users.id).notNull(),
+    name: text("name"),
+    isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+});
+
+export const careTeamMembers = sqliteTable("care_team_members", {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    careTeamId: integer("care_team_id").references(() => careTeams.id).notNull(),
+    membershipId: integer("membership_id").references(() => hospitalMemberships.id).notNull(),
+    teamRole: text("team_role", { enum: ["primary_doctor", "consultant", "pathologist"] }).notNull(),
+    isPrimary: integer("is_primary", { mode: "boolean" }).notNull().default(false),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+});
+
+export const careTeamsRelations = relations(careTeams, ({ one, many }) => ({
+    hospital: one(hospitals, { fields: [careTeams.hospitalId], references: [hospitals.id] }),
+    patient: one(users, { fields: [careTeams.patientId], references: [users.id] }),
+    members: many(careTeamMembers),
+}));
+
+export const careTeamMembersRelations = relations(careTeamMembers, ({ one }) => ({
+    careTeam: one(careTeams, { fields: [careTeamMembers.careTeamId], references: [careTeams.id] }),
+    membership: one(hospitalMemberships, { fields: [careTeamMembers.membershipId], references: [hospitalMemberships.id] }),
+}));
+
+// =====================================================
+// PR6: REPORTING
+// =====================================================
+
+// =====================================================
+// HOSPITAL REPORT TEMPLATES
+// =====================================================
+export const hospitalReportTemplates = sqliteTable("hospital_report_templates", {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    hospitalId: integer("hospital_id").references(() => hospitals.id).notNull(),
+    name: text("name").notNull(),
+    version: integer("version").notNull().default(1),
+    isDefault: integer("is_default", { mode: "boolean" }).notNull().default(false),
+    isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+    headerImageUrl: text("header_image_url"),
+    footerImageUrl: text("footer_image_url"),
+    logoUrl: text("logo_url"),
+    sectionSchemaJson: text("section_schema_json"), // JSON defining report sections
+    disclaimerText: text("disclaimer_text"),
+    signatureConfigJson: text("signature_config_json"), // JSON for signature fields
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+}, (table) => ({
+    uniqueHospitalNameVersion: uniqueIndex("hrt_hospital_name_version").on(table.hospitalId, table.name, table.version),
+}));
+
+export const hospitalReportTemplatesRelations = relations(hospitalReportTemplates, ({ one }) => ({
+    hospital: one(hospitals, { fields: [hospitalReportTemplates.hospitalId], references: [hospitals.id] }),
+}));
+
+// =====================================================
+// CASE REPORTS
+// =====================================================
+export const caseReports = sqliteTable("case_reports", {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    caseId: integer("case_id").references(() => cases.id).notNull(),
+    hospitalId: integer("hospital_id").references(() => hospitals.id).notNull(),
+    templateId: integer("template_id").references(() => hospitalReportTemplates.id),
+    authoredByUserId: integer("authored_by_user_id").references(() => users.id).notNull(),
+    authoredByMembershipId: integer("authored_by_membership_id").references(() => hospitalMemberships.id),
+    status: text("status", { enum: ["draft", "signed", "released", "archived"] }).notNull().default("draft"),
+    title: text("title"),
+    contentJson: text("content_json"),
+    htmlSnapshot: text("html_snapshot"),
+    pdfUrl: text("pdf_url"),
+    patientSummary: text("patient_summary"),
+    releasedMedicationsJson: text("released_medications_json"),
+    signedAt: integer("signed_at", { mode: "timestamp" }),
+    releasedAt: integer("released_at", { mode: "timestamp" }),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+}, (table) => ({
+    idxCaseStatus: index("cr_case_status").on(table.caseId, table.status, table.updatedAt),
+}));
+
+export const caseReportsRelations = relations(caseReports, ({ one, many }) => ({
+    case_: one(cases, { fields: [caseReports.caseId], references: [cases.id] }),
+    hospital: one(hospitals, { fields: [caseReports.hospitalId], references: [hospitals.id] }),
+    template: one(hospitalReportTemplates, { fields: [caseReports.templateId], references: [hospitalReportTemplates.id] }),
+    authoredByUser: one(users, { fields: [caseReports.authoredByUserId], references: [users.id] }),
+    authoredByMembership: one(hospitalMemberships, { fields: [caseReports.authoredByMembershipId], references: [hospitalMemberships.id] }),
+    versions: many(caseReportVersions),
+}));
+
+// =====================================================
+// CASE REPORT VERSIONS
+// =====================================================
+export const caseReportVersions = sqliteTable("case_report_versions", {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    reportId: integer("report_id").references(() => caseReports.id).notNull(),
+    versionNumber: integer("version_number").notNull(),
+    editedByUserId: integer("edited_by_user_id").references(() => users.id).notNull(),
+    editedByMembershipId: integer("edited_by_membership_id").references(() => hospitalMemberships.id),
+    contentJson: text("content_json"),
+    htmlSnapshot: text("html_snapshot"),
+    changeSummary: text("change_summary"),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+}, (table) => ({
+    uniqueReportVersion: uniqueIndex("crv_report_version").on(table.reportId, table.versionNumber),
+}));
+
+export const caseReportVersionsRelations = relations(caseReportVersions, ({ one }) => ({
+    report: one(caseReports, { fields: [caseReportVersions.reportId], references: [caseReports.id] }),
+    editedByUser: one(users, { fields: [caseReportVersions.editedByUserId], references: [users.id] }),
+    editedByMembership: one(hospitalMemberships, { fields: [caseReportVersions.editedByMembershipId], references: [hospitalMemberships.id] }),
 }));
