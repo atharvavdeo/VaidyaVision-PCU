@@ -1,0 +1,801 @@
+{
+  "samples": {
+    "id": 1,
+    "scan_id": 20,
+    "case_id": 20,
+    "report_id": 10,
+    "conversation_id": 3,
+    "hospital_id": 50,
+    "patient_id": 7,
+    "doctor_id": 9,
+    "artifact_id": 1
+  },
+  "frontend": [
+    {
+      "surface": "frontend",
+      "file": "analytics/route.ts",
+      "method": "GET",
+      "endpoint": "/api/analytics",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "appointments/route.ts",
+      "method": "GET",
+      "endpoint": "/api/appointments",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "appointments/route.ts",
+      "method": "PATCH",
+      "endpoint": "/api/appointments",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "appointments/route.ts",
+      "method": "POST",
+      "endpoint": "/api/appointments",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "call-reminder/route.ts",
+      "method": "POST",
+      "endpoint": "/api/call-reminder",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "cases/route.ts",
+      "method": "GET",
+      "endpoint": "/api/cases",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "cases/route.ts",
+      "method": "POST",
+      "endpoint": "/api/cases",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "conversations/route.ts",
+      "method": "GET",
+      "endpoint": "/api/conversations",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "conversations/route.ts",
+      "method": "POST",
+      "endpoint": "/api/conversations",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "exercises/route.ts",
+      "method": "GET",
+      "endpoint": "/api/exercises",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "exercises/route.ts",
+      "method": "POST",
+      "endpoint": "/api/exercises",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "family/route.ts",
+      "method": "DELETE",
+      "endpoint": "/api/family",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "family/route.ts",
+      "method": "GET",
+      "endpoint": "/api/family",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "family/route.ts",
+      "method": "POST",
+      "endpoint": "/api/family",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "hospitals/route.ts",
+      "method": "GET",
+      "endpoint": "/api/hospitals",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "medications/route.ts",
+      "method": "GET",
+      "endpoint": "/api/medications",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "medications/route.ts",
+      "method": "POST",
+      "endpoint": "/api/medications",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "memberships/route.ts",
+      "method": "GET",
+      "endpoint": "/api/memberships",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "memberships/route.ts",
+      "method": "PATCH",
+      "endpoint": "/api/memberships",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "memberships/route.ts",
+      "method": "POST",
+      "endpoint": "/api/memberships",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "ml-proxy/route.ts",
+      "method": "POST",
+      "endpoint": "/api/ml-proxy",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "notifications/route.ts",
+      "method": "GET",
+      "endpoint": "/api/notifications",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "notifications/route.ts",
+      "method": "PATCH",
+      "endpoint": "/api/notifications",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "ocr/route.ts",
+      "method": "POST",
+      "endpoint": "/api/ocr",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "report-templates/route.ts",
+      "method": "GET",
+      "endpoint": "/api/report-templates",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "report-templates/route.ts",
+      "method": "POST",
+      "endpoint": "/api/report-templates",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "reports/route.ts",
+      "method": "GET",
+      "endpoint": "/api/reports",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "reports/route.ts",
+      "method": "POST",
+      "endpoint": "/api/reports",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "research/route.ts",
+      "method": "POST",
+      "endpoint": "/api/research",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "scans/route.ts",
+      "method": "GET",
+      "endpoint": "/api/scans",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "schedule-followup/route.ts",
+      "method": "GET",
+      "endpoint": "/api/schedule-followup",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "schedule-followup/route.ts",
+      "method": "POST",
+      "endpoint": "/api/schedule-followup",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "send-report-email/route.ts",
+      "method": "POST",
+      "endpoint": "/api/send-report-email",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "twiml-confirm/route.ts",
+      "method": "POST",
+      "endpoint": "/api/twiml-confirm",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "twiml-reminder/route.ts",
+      "method": "POST",
+      "endpoint": "/api/twiml-reminder",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "upload/route.ts",
+      "method": "POST",
+      "endpoint": "/api/upload",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "voice-notes/route.ts",
+      "method": "POST",
+      "endpoint": "/api/voice-notes",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "users/me/route.ts",
+      "method": "GET",
+      "endpoint": "/api/users/me",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "users/onboard/route.ts",
+      "method": "POST",
+      "endpoint": "/api/users/onboard",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "users/patients/route.ts",
+      "method": "GET",
+      "endpoint": "/api/users/patients",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "users/patients/route.ts",
+      "method": "POST",
+      "endpoint": "/api/users/patients",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "users/sync/route.ts",
+      "method": "POST",
+      "endpoint": "/api/users/sync",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "scans/[id]/route.ts",
+      "method": "GET",
+      "endpoint": "/api/scans/20",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "scans/[id]/route.ts",
+      "method": "PATCH",
+      "endpoint": "/api/scans/20",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "research/stats/route.ts",
+      "method": "GET",
+      "endpoint": "/api/research/stats",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "reports/[id]/route.ts",
+      "method": "GET",
+      "endpoint": "/api/reports/10",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "patients/hospitals/route.ts",
+      "method": "GET",
+      "endpoint": "/api/patients/hospitals",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "ocr/save/route.ts",
+      "method": "POST",
+      "endpoint": "/api/ocr/save",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "medications/log/route.ts",
+      "method": "POST",
+      "endpoint": "/api/medications/log",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "medications/[id]/route.ts",
+      "method": "DELETE",
+      "endpoint": "/api/medications/1",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "medications/[id]/route.ts",
+      "method": "PATCH",
+      "endpoint": "/api/medications/1",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "hospitals/[id]/patients/route.ts",
+      "method": "GET",
+      "endpoint": "/api/hospitals/50/patients",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "exercises/log/route.ts",
+      "method": "POST",
+      "endpoint": "/api/exercises/log",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "exercises/[id]/route.ts",
+      "method": "DELETE",
+      "endpoint": "/api/exercises/1",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "exercises/[id]/route.ts",
+      "method": "PATCH",
+      "endpoint": "/api/exercises/1",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "doctor/profile/route.ts",
+      "method": "GET",
+      "endpoint": "/api/doctor/profile",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "doctor/profile/route.ts",
+      "method": "PUT",
+      "endpoint": "/api/doctor/profile",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "doctor/stats/route.ts",
+      "method": "GET",
+      "endpoint": "/api/doctor/stats",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "doctor/patients/[id]/route.ts",
+      "method": "GET",
+      "endpoint": "/api/doctor/patients/7",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "developer/keys/route.ts",
+      "method": "DELETE",
+      "endpoint": "/api/developer/keys",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "developer/keys/route.ts",
+      "method": "GET",
+      "endpoint": "/api/developer/keys",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "developer/keys/route.ts",
+      "method": "POST",
+      "endpoint": "/api/developer/keys",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "conversations/[id]/messages/route.ts",
+      "method": "GET",
+      "endpoint": "/api/conversations/3/messages",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "conversations/[id]/messages/route.ts",
+      "method": "POST",
+      "endpoint": "/api/conversations/3/messages",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "cases/[id]/route.ts",
+      "method": "GET",
+      "endpoint": "/api/cases/20",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "cases/[id]/route.ts",
+      "method": "PATCH",
+      "endpoint": "/api/cases/20",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "cases/[id]/artifacts/route.ts",
+      "method": "GET",
+      "endpoint": "/api/cases/20/artifacts",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "cases/[id]/artifacts/route.ts",
+      "method": "POST",
+      "endpoint": "/api/cases/20/artifacts",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "cases/[id]/assignments/route.ts",
+      "method": "GET",
+      "endpoint": "/api/cases/20/assignments",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "cases/[id]/assignments/route.ts",
+      "method": "PATCH",
+      "endpoint": "/api/cases/20/assignments",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "cases/[id]/assignments/route.ts",
+      "method": "POST",
+      "endpoint": "/api/cases/20/assignments",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "cases/[id]/reports/route.ts",
+      "method": "GET",
+      "endpoint": "/api/cases/20/reports",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "cases/[id]/reports/route.ts",
+      "method": "PATCH",
+      "endpoint": "/api/cases/20/reports",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "cases/[id]/reports/route.ts",
+      "method": "POST",
+      "endpoint": "/api/cases/20/reports",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "artifacts/upload/route.ts",
+      "method": "POST",
+      "endpoint": "/api/artifacts/upload",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "ai/report/route.ts",
+      "method": "POST",
+      "endpoint": "/api/ai/report",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "ai/suggest/route.ts",
+      "method": "POST",
+      "endpoint": "/api/ai/suggest",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    },
+    {
+      "surface": "frontend",
+      "file": "ai/treatment/route.ts",
+      "method": "POST",
+      "endpoint": "/api/ai/treatment",
+      "status": 404,
+      "body": "<!DOCTYPE html><html lang=\"en\" class=\"scroll-smooth\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/css/app/layout.css?v=17741"
+    }
+  ],
+  "backend": [
+    {
+      "surface": "backend",
+      "file": "artifacts.py",
+      "method": "POST",
+      "endpoint": "/artifacts/upload",
+      "status": 500,
+      "body": "Internal Server Error"
+    },
+    {
+      "surface": "backend",
+      "file": "cases.py",
+      "method": "GET",
+      "endpoint": "/cases",
+      "status": 500,
+      "body": "Internal Server Error"
+    },
+    {
+      "surface": "backend",
+      "file": "cases.py",
+      "method": "POST",
+      "endpoint": "/cases",
+      "status": 500,
+      "body": "Internal Server Error"
+    },
+    {
+      "surface": "backend",
+      "file": "cases.py",
+      "method": "GET",
+      "endpoint": "/cases/20",
+      "status": 500,
+      "body": "Internal Server Error"
+    },
+    {
+      "surface": "backend",
+      "file": "cases.py",
+      "method": "PATCH",
+      "endpoint": "/cases/20",
+      "status": 500,
+      "body": "Internal Server Error"
+    },
+    {
+      "surface": "backend",
+      "file": "cases.py",
+      "method": "GET",
+      "endpoint": "/cases/20/artifacts",
+      "status": 500,
+      "body": "Internal Server Error"
+    },
+    {
+      "surface": "backend",
+      "file": "cases.py",
+      "method": "GET",
+      "endpoint": "/cases/20/assignments",
+      "status": 500,
+      "body": "Internal Server Error"
+    },
+    {
+      "surface": "backend",
+      "file": "cases.py",
+      "method": "POST",
+      "endpoint": "/cases/20/assignments",
+      "status": 500,
+      "body": "Internal Server Error"
+    },
+    {
+      "surface": "backend",
+      "file": "cases.py",
+      "method": "PATCH",
+      "endpoint": "/cases/20/assignments",
+      "status": 500,
+      "body": "Internal Server Error"
+    },
+    {
+      "surface": "backend",
+      "file": "cases.py",
+      "method": "GET",
+      "endpoint": "/cases/20/reports",
+      "status": 500,
+      "body": "Internal Server Error"
+    },
+    {
+      "surface": "backend",
+      "file": "cases.py",
+      "method": "POST",
+      "endpoint": "/cases/20/reports",
+      "status": 500,
+      "body": "Internal Server Error"
+    },
+    {
+      "surface": "backend",
+      "file": "cases.py",
+      "method": "PATCH",
+      "endpoint": "/cases/20/reports",
+      "status": 500,
+      "body": "Internal Server Error"
+    },
+    {
+      "surface": "backend",
+      "file": "hospitals.py",
+      "method": "GET",
+      "endpoint": "/hospitals",
+      "status": 500,
+      "body": "Internal Server Error"
+    },
+    {
+      "surface": "backend",
+      "file": "hospitals.py",
+      "method": "GET",
+      "endpoint": "/hospitals/50/patients",
+      "status": 500,
+      "body": "Internal Server Error"
+    },
+    {
+      "surface": "backend",
+      "file": "memberships.py",
+      "method": "GET",
+      "endpoint": "/memberships",
+      "status": 500,
+      "body": "Internal Server Error"
+    },
+    {
+      "surface": "backend",
+      "file": "memberships.py",
+      "method": "POST",
+      "endpoint": "/memberships",
+      "status": 500,
+      "body": "Internal Server Error"
+    },
+    {
+      "surface": "backend",
+      "file": "memberships.py",
+      "method": "PATCH",
+      "endpoint": "/memberships",
+      "status": 500,
+      "body": "Internal Server Error"
+    },
+    {
+      "surface": "backend",
+      "file": "patients.py",
+      "method": "GET",
+      "endpoint": "/patients/hospitals",
+      "status": 500,
+      "body": "Internal Server Error"
+    },
+    {
+      "surface": "backend",
+      "file": "report_templates.py",
+      "method": "GET",
+      "endpoint": "/report-templates",
+      "status": 500,
+      "body": "Internal Server Error"
+    },
+    {
+      "surface": "backend",
+      "file": "report_templates.py",
+      "method": "POST",
+      "endpoint": "/report-templates",
+      "status": 500,
+      "body": "Internal Server Error"
+    }
+  ]
+}

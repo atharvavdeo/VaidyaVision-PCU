@@ -32,6 +32,15 @@ Thumbs.db
 *.log
 npm-debug.log*
 
+# SQLite runtime artifacts
+*.db-shm
+*.db-wal
+
+# Split-architecture source of truth is backend/data; avoid duplicate frontend DB snapshots
+frontend/data/*.db
+frontend/data/*.db-shm
+frontend/data/*.db-wal
+
 # IDE
 .vscode/
 .idea/
