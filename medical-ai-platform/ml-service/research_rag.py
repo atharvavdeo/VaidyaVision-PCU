@@ -60,7 +60,7 @@ RULES:
 8. Format your response with markdown headings and bullet points for readability."""
 
 
-async def ask_research(query: str, top_k: int = 5, crawl_if_empty: bool = True) -> Dict:
+async def ask_research(query: str, top_k: int = 15, crawl_if_empty: bool = True) -> Dict:
     """
     Full RAG pipeline:
     1. Search the knowledge base (hybrid search)
@@ -75,7 +75,7 @@ async def ask_research(query: str, top_k: int = 5, crawl_if_empty: bool = True) 
     if len(search_results) < 2 and crawl_if_empty:
         rate = get_rate_stats()
         if rate["can_crawl"]:
-            new_articles = crawler.search_medical(query, max_sources=2)
+            new_articles = crawler.search_medical(query, max_sources=15)
             if new_articles:
                 # Index the new articles
                 from research_embeddings import index_articles
@@ -91,7 +91,7 @@ async def ask_research(query: str, top_k: int = 5, crawl_if_empty: bool = True) 
         title = result.get("metadata", {}).get("title", f"Source {i+1}")
         source_name = result.get("metadata", {}).get("source", "Unknown")
         url = result.get("metadata", {}).get("url", "")
-        content = result.get("content", "")[:1500]  # Limit per-source context
+        content = result.get("content", "")[:1000]  # Limit per-source context
 
         context_parts.append(f"--- Source {i+1}: {title} ({source_name}) ---\n{content}")
         sources.append({

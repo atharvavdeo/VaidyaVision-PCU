@@ -253,7 +253,7 @@ async def ocr_prescriptions_only(
 @app.post("/research/ask")
 async def research_ask(
     query: str = Form(...),
-    top_k: int = Form(5),
+    top_k: int = Form(15),
     crawl_if_empty: bool = Form(True),
 ):
     """
@@ -273,7 +273,7 @@ async def research_ask(
 @app.post("/research/crawl-latest")
 async def research_crawl(
     query: str = Form("latest medical research breakthroughs"),
-    max_sources: int = Form(2),
+    max_sources: int = Form(15),
 ):
     """
     Crawl medical sources for a query and index the results.

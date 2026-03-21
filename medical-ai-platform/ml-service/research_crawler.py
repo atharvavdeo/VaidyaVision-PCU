@@ -18,13 +18,19 @@ except ImportError:
 
 # ─── Configuration ──────────────────────────────────────────────
 
-FIRECRAWL_API_KEY = os.getenv("FIRECRAWL_API_KEY", "fc-b82ca843586b465185ac93824fb9ef6a")
+FIRECRAWL_API_KEY = os.getenv("FIRECRAWL_API_KEY", "fc-5e2e9f623fd044bbacd60ff3717a5a8e")
 
 MEDICAL_SOURCES = [
     {
         "name": "PubMed Central",
         "url": "https://pubmed.ncbi.nlm.nih.gov/",
         "search_url": "https://pubmed.ncbi.nlm.nih.gov/?term={query}&sort=date",
+        "type": "research",
+    },
+    {
+        "name": "ArXiv (q-bio)",
+        "url": "https://arxiv.org/archive/q-bio",
+        "search_url": "https://arxiv.org/search/q-bio?query={query}&searchtype=all&abstracts=show&order=-announced_date_first&size=50",
         "type": "research",
     },
     {
@@ -45,11 +51,71 @@ MEDICAL_SOURCES = [
         "search_url": "https://www.mayoclinic.org/search/search-results?q={query}",
         "type": "clinical",
     },
+    {
+        "name": "PLOS One",
+        "url": "https://journals.plos.org/plosone/",
+        "search_url": "https://journals.plos.org/plosone/article/search?q={query}",
+        "type": "research",
+    },
+    {
+        "name": "BioMed Central",
+        "url": "https://www.biomedcentral.com/",
+        "search_url": "https://www.biomedcentral.com/search?searchType=publisherSearch&query={query}",
+        "type": "research",
+    },
+    {
+        "name": "medRxiv",
+        "url": "https://www.medrxiv.org/",
+        "search_url": "https://www.medrxiv.org/search/{query}",
+        "type": "research",
+    },
+    {
+        "name": "bioRxiv",
+        "url": "https://www.biorxiv.org/",
+        "search_url": "https://www.biorxiv.org/search/{query}",
+        "type": "research",
+    },
+    {
+        "name": "The Lancet",
+        "url": "https://www.thelancet.com/",
+        "search_url": "https://www.thelancet.com/action/doSearch?text1={query}",
+        "type": "research",
+    },
+    {
+        "name": "JAMA Network",
+        "url": "https://jamanetwork.com/",
+        "search_url": "https://jamanetwork.com/searchresults?q={query}",
+        "type": "research",
+    },
+    {
+        "name": "NEJM",
+        "url": "https://www.nejm.org/",
+        "search_url": "https://www.nejm.org/search?q={query}",
+        "type": "research",
+    },
+    {
+        "name": "Nature Medicine",
+        "url": "https://www.nature.com/nm/",
+        "search_url": "https://www.nature.com/search?q={query}&journal=nm",
+        "type": "research",
+    },
+    {
+        "name": "ScienceDirect",
+        "url": "https://www.sciencedirect.com/",
+        "search_url": "https://www.sciencedirect.com/search?qs={query}",
+        "type": "research",
+    },
+    {
+        "name": "BMJ",
+        "url": "https://www.bmj.com/",
+        "search_url": "https://www.bmj.com/search/advanced/{query}",
+        "type": "research",
+    },
 ]
 
 # Rate limiting: max calls per period
-MAX_CRAWLS_PER_HOUR = 15
-MAX_CRAWLS_PER_DAY = 50
+MAX_CRAWLS_PER_HOUR = 60
+MAX_CRAWLS_PER_DAY = 200
 
 CACHE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "research_cache")
 os.makedirs(CACHE_DIR, exist_ok=True)
@@ -200,7 +266,7 @@ class MedicalResearchCrawler:
             print(f"[ERROR] Failed to crawl {url}: {e}")
             return None
 
-    def search_medical(self, query: str, max_sources: int = 3) -> List[Dict]:
+    def search_medical(self, query: str, max_sources: int = 15) -> List[Dict]:
         """
         Search medical sources for a query. Rate-limited.
         Returns list of crawled article data.
