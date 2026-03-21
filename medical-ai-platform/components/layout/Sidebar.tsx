@@ -11,7 +11,6 @@ import {
     Calendar,
     Users,
     Scan,
-    Settings,
     ChevronLeft,
     ChevronRight,
     Stethoscope,
@@ -20,7 +19,11 @@ import {
     Dumbbell,
     ClipboardList,
     BookOpen,
-    Code2,
+    FolderOpen,
+    Inbox,
+    Settings,
+    FlaskConical,
+    UserCircle,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -30,41 +33,68 @@ interface NavItem {
     icon: React.ElementType;
 }
 
+// ── Doctor nav ────────────────────────────────────────────────────────────────
 const doctorNav: NavItem[] = [
-    { label: "Dashboard", href: "/doctor", icon: LayoutDashboard },
-    { label: "Scan Queue", href: "/doctor/queue", icon: Scan },
-    { label: "Patients", href: "/doctor/patients", icon: Users },
-    { label: "Prescriptions", href: "/doctor/prescriptions", icon: ClipboardList },
-    { label: "Upload Rx", href: "/doctor/scan/prescriptions", icon: Upload },
-    { label: "Research", href: "/doctor/research", icon: BookOpen },
-    { label: "Messages", href: "/doctor/messages", icon: MessageSquare },
-    { label: "Reports", href: "/doctor/reports", icon: FileText },
-    { label: "Appointments", href: "/doctor/appointments", icon: Calendar },
-    { label: "Developer API", href: "/doctor/developer", icon: Code2 },
-    { label: "Profile", href: "/doctor/profile", icon: Users },
+    { label: "Dashboard",        href: "/doctor",                 icon: LayoutDashboard },
+    { label: "Case Inbox",       href: "/doctor/cases",           icon: Inbox },
+    { label: "Scan Queue",       href: "/doctor/queue",           icon: Scan },
+    { label: "Patients",         href: "/doctor/patients",        icon: Users },
+    { label: "Reports",          href: "/doctor/reports",         icon: FileText },
+    { label: "Prescriptions",    href: "/doctor/prescriptions",   icon: ClipboardList },
+    { label: "Messages",         href: "/doctor/messages",        icon: MessageSquare },
+    { label: "Appointments",     href: "/doctor/appointments",    icon: Calendar },
+    { label: "Research",         href: "/doctor/research",        icon: BookOpen },
+    { label: "Profile",          href: "/doctor/profile",         icon: UserCircle },
+    { label: "Hospital Settings",href: "/doctor/settings/hospital", icon: Settings },
 ];
 
-const patientNav: NavItem[] = [
-    { label: "Dashboard", href: "/patient", icon: LayoutDashboard },
-    { label: "Upload Scan", href: "/patient/upload", icon: Upload },
-    { label: "Prescriptions", href: "/patient/upload-prescription", icon: FileText },
-    { label: "Medications", href: "/patient/medications", icon: Pill },
-    { label: "Exercise", href: "/patient/exercise", icon: Dumbbell },
-    { label: "Research", href: "/patient/research", icon: BookOpen },
-    { label: "My Scans", href: "/patient/scans", icon: Scan },
-    { label: "Messages", href: "/patient/messages", icon: MessageSquare },
-    { label: "Appointments", href: "/patient/appointments", icon: Calendar },
-    { label: "Family", href: "/patient/family", icon: Heart },
+// ── Pathologist nav ───────────────────────────────────────────────────────────
+const pathologistNav: NavItem[] = [
+    { label: "Dashboard",        href: "/pathologist",            icon: LayoutDashboard },
+    { label: "Upload Case",      href: "/pathologist",            icon: Upload },          // main upload wizard lives on /pathologist
+    { label: "Recent Cases",     href: "/doctor/cases",           icon: FolderOpen },      // shared case list, read-only view
+    { label: "Patients",         href: "/doctor/patients",        icon: Users },
+    { label: "Messages",         href: "/doctor/messages",        icon: MessageSquare },
+    { label: "Profile",          href: "/doctor/profile",         icon: UserCircle },
+    { label: "Hospital Context", href: "/doctor/settings/hospital", icon: FlaskConical },
 ];
+
+// ── Patient nav ───────────────────────────────────────────────────────────────
+const patientNav: NavItem[] = [
+    { label: "Dashboard",        href: "/patient",                icon: LayoutDashboard },
+    { label: "My Reports",       href: "/patient/cases",          icon: FileText },
+    { label: "Upload Scan",      href: "/patient/upload",         icon: Upload },
+    { label: "Prescriptions",    href: "/patient/upload-prescription", icon: ClipboardList },
+    { label: "Medications",      href: "/patient/medications",    icon: Pill },
+    { label: "Exercise",         href: "/patient/exercise",       icon: Dumbbell },
+    { label: "Messages",         href: "/patient/messages",       icon: MessageSquare },
+    { label: "Appointments",     href: "/patient/appointments",   icon: Calendar },
+    { label: "Family",           href: "/patient/family",         icon: Heart },
+    { label: "Research",         href: "/patient/research",       icon: BookOpen },
+];
+
+// ── Role meta ─────────────────────────────────────────────────────────────────
+const roleMeta: Record<"doctor" | "pathologist" | "patient", { label: string; badge: string; badgeClass: string }> = {
+    doctor:      { label: "VAIDYAVISION", badge: "DOCTOR",      badgeClass: "bg-olive-800 text-cream-100 border-olive-700" },
+    pathologist: { label: "VAIDYAVISION", badge: "PATHOLOGIST", badgeClass: "bg-emerald-900 text-emerald-100 border-emerald-700" },
+    patient:     { label: "VAIDYAVISION", badge: "PATIENT",     badgeClass: "bg-blue-900   text-blue-100   border-blue-700" },
+};
 
 interface SidebarProps {
-    role: "doctor" | "patient";
+    role: "doctor" | "pathologist" | "patient";
 }
 
 export default function Sidebar({ role }: SidebarProps) {
     const pathname = usePathname();
     const [collapsed, setCollapsed] = useState(false);
-    const navItems = role === "doctor" ? doctorNav : patientNav;
+
+    const navItems =
+        role === "doctor"      ? doctorNav      :
+        role === "pathologist" ? pathologistNav :
+                                 patientNav;
+
+    const meta = roleMeta[role];
+    const baseHref = role === "patient" ? "/patient" : role === "pathologist" ? "/pathologist" : "/doctor";
 
     return (
         <aside
@@ -80,7 +110,7 @@ export default function Sidebar({ role }: SidebarProps) {
                 </div>
                 {!collapsed && (
                     <span className="text-lg font-display font-bold tracking-tight text-cream-50">
-                        VAIDYAVISION
+                        {meta.label}
                     </span>
                 )}
             </div>
@@ -90,11 +120,11 @@ export default function Sidebar({ role }: SidebarProps) {
                 {navItems.map((item) => {
                     const isActive =
                         pathname === item.href ||
-                        (item.href !== `/${role}` && pathname.startsWith(item.href));
+                        (item.href !== baseHref && pathname.startsWith(item.href));
 
                     return (
                         <Link
-                            key={item.href}
+                            key={item.label + item.href}
                             href={item.href}
                             className={cn(
                                 "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all group",
@@ -114,15 +144,11 @@ export default function Sidebar({ role }: SidebarProps) {
             <div className="px-2 py-3 border-t border-olive-800">
                 {!collapsed && (
                     <div className="px-3 mb-2">
-                        <span
-                            className={cn(
-                                "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border border-olive-700",
-                                role === "doctor"
-                                    ? "bg-olive-800 text-cream-100"
-                                    : "bg-blue-900 text-blue-100"
-                            )}
-                        >
-                            {role === "doctor" ? "DR. CHEN" : "PATIENT"}
+                        <span className={cn(
+                            "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border",
+                            meta.badgeClass
+                        )}>
+                            {meta.badge}
                         </span>
                     </div>
                 )}

@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
         const body = await req.json();
         const { role } = body;
 
-        if (!role || !["doctor", "patient", "admin"].includes(role)) {
+        if (!role || !["doctor", "patient", "admin", "pathologist", "hospital_admin"].includes(role)) {
             return NextResponse.json({ error: "Invalid role" }, { status: 400 });
         }
 

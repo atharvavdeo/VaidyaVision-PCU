@@ -12,7 +12,7 @@ export default function PatientLayout({
         <div className="min-h-screen bg-cream-50">
             <Sidebar role="patient" />
             <div className="lg:ml-64 transition-all duration-300">
-                <TopNav title="Patient Dashboard" />
+                <TopNav title="My Care" />
                 <main className="p-6">{children}</main>
             </div>
         </div>
