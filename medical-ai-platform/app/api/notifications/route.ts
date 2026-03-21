@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { notifications, users } from "@/lib/db/schema";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, sql } from "drizzle-orm";
 
 // GET /api/notifications — Get notifications for current user
 export async function GET() {
@@ -19,13 +19,18 @@ export async function GET() {
             return NextResponse.json({ error: "User not found" }, { status: 404 });
         }
 
-        const notifs = await db.query.notifications.findMany({
-            where: eq(notifications.userId, user.id),
-            orderBy: [desc(notifications.createdAt)],
-            limit: 20,
-        });
+        const [notifs, unreadRes] = await Promise.all([
+            db.query.notifications.findMany({
+                where: eq(notifications.userId, user.id),
+                orderBy: [desc(notifications.createdAt)],
+                limit: 20,
+            }),
+            db.select({ count: sql<number>`count(*)` })
+              .from(notifications)
+              .where(and(eq(notifications.userId, user.id), eq(notifications.isRead, false)))
+        ]);
 
-        const unreadCount = notifs.filter((n) => !n.isRead).length;
+        const unreadCount = unreadRes[0]?.count || 0;
 
         return NextResponse.json({ notifications: notifs, unreadCount });
     } catch (error) {

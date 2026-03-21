@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { caseAssignments, cases, hospitalMemberships, notifications } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
+import { createNotification } from "@/lib/notifications";
 import {
     getAuthUser, unauthorized, forbidden, badRequest, notFound,
     resolveHospital,
@@ -100,12 +101,12 @@ export async function POST(
         }
 
         // Notify assigned doctor
-        await db.insert(notifications).values({
+        await createNotification({
             userId: targetMembership.userId,
             type: "case_assigned",
-            message: `New case assigned to you: ${case_.title || "Case #" + caseId}`,
+            message: "A new case has been assigned to you.",
             link: `/doctor/cases/${caseId}`,
-        }).catch(() => {});
+        });
 
         return NextResponse.json({ assignment }, { status: 201 });
     } catch (error: any) {

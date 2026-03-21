@@ -1,6 +1,7 @@
 
 import { NextResponse } from "next/server";
 import twilio from "twilio";
+import { createNotification } from "@/lib/notifications";
 
 // Initialize Twilio client
 // Ensure TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_PHONE are in .env
@@ -17,7 +18,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Twilio not configured" }, { status: 500 });
         }
 
-        const { patientPhone, patientName, appointmentTime } = await req.json();
+        const { patientPhone, patientName, patientId, appointmentTime } = await req.json();
 
         // In production, validate phone number format
         if (!patientPhone) {
@@ -41,6 +42,15 @@ export async function POST(req: Request) {
             from: fromPhone,
             url: twimlUrl,
         });
+
+        if (patientId) {
+            await createNotification({
+                userId: patientId,
+                type: "appointment", // or urgent_alert or message_received
+                message: "A reminder call has been initiated for your care plan.",
+                link: `/patient/cases`, // or /appointments if it exists
+            });
+        }
 
         return NextResponse.json({ called: true, sid: call.sid });
 

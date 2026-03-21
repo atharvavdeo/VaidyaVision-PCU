@@ -6,6 +6,7 @@ import {
     getAuthUser, unauthorized, forbidden, badRequest, notFound,
     resolveHospital, patientReportProjection, adminReportProjection,
 } from "@/lib/api-auth";
+import { createNotification } from "@/lib/notifications";
 
 // GET /api/cases/[id]/reports
 export async function GET(
@@ -220,6 +221,14 @@ export async function PATCH(
             editedByMembershipId: membership.id,
             contentJson: report.contentJson,
             changeSummary: "Released to patient",
+        });
+
+        // Notify patient
+        await createNotification({
+            userId: case_.patientId,
+            type: "report_signed",
+            message: "Your report has been released and is now available.",
+            link: `/patient/cases/${caseId}`,
         });
 
         return NextResponse.json({ report: updated });

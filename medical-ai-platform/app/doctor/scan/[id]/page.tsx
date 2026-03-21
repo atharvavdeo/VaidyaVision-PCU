@@ -259,6 +259,7 @@ export default function ScanReview() {
                 body: JSON.stringify({
                     patientPhone: phone,
                     patientName: scan.patient?.name || "Patient",
+                    patientId: scan.patientId || scan.patient?.id,
                     appointmentTime: "your upcoming appointment"
                 })
             });

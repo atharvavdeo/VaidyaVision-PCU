@@ -9,28 +9,13 @@ interface TopNavProps {
     onMenuClick?: () => void;
 }
 
-interface Notification {
-    id: number;
-    type: string;
-    message: string;
-    link: string | null;
-    isRead: boolean;
-    createdAt: string;
-}
+import { useNotifications } from "@/hooks/useNotifications";
 
 export default function TopNav({ title, onMenuClick }: TopNavProps) {
     const [searchOpen, setSearchOpen] = useState(false);
     const [showNotifs, setShowNotifs] = useState(false);
-    const [notifications, setNotifications] = useState<Notification[]>([]);
-    const [unreadCount, setUnreadCount] = useState(0);
+    const { notifications, unreadCount, markAllRead } = useNotifications();
     const notifRef = useRef<HTMLDivElement>(null);
-
-    // Fetch notifications on mount + poll every 10s
-    useEffect(() => {
-        fetchNotifications();
-        const interval = setInterval(fetchNotifications, 10000);
-        return () => clearInterval(interval);
-    }, []);
 
     // Click outside to close
     useEffect(() => {
@@ -43,22 +28,7 @@ export default function TopNav({ title, onMenuClick }: TopNavProps) {
         return () => document.removeEventListener("mousedown", handler);
     }, []);
 
-    async function fetchNotifications() {
-        try {
-            const res = await fetch("/api/notifications");
-            const data = await res.json();
-            setNotifications(data.notifications || []);
-            setUnreadCount(data.unreadCount || 0);
-        } catch { } // silent fail
-    }
 
-    async function markAllRead() {
-        try {
-            await fetch("/api/notifications", { method: "PATCH" });
-            setUnreadCount(0);
-            setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
-        } catch { }
-    }
 
     const NOTIF_ICONS: Record<string, React.ElementType> = {
         message_received: MessageSquare,
@@ -112,7 +82,7 @@ export default function TopNav({ title, onMenuClick }: TopNavProps) {
                             <Bell className="w-5 h-5" />
                             {unreadCount > 0 && (
                                 <span className="absolute top-1 right-1 min-w-[16px] h-4 px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                                    {unreadCount > 9 ? "9+" : unreadCount}
+                                    {unreadCount > 99 ? "99+" : unreadCount}
                                 </span>
                             )}
                         </button>

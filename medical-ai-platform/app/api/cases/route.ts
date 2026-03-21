@@ -4,6 +4,7 @@ import {
     cases, caseAssignments, hospitalMemberships, notifications, users, patientHospitalLinks,
 } from "@/lib/db/schema";
 import { eq, and, desc } from "drizzle-orm";
+import { createNotification } from "@/lib/notifications";
 import {
     getAuthUser, unauthorized, forbidden, badRequest,
     resolveHospital, noPrimaryMembership,
@@ -165,12 +166,12 @@ export async function POST(req: NextRequest) {
                 where: eq(hospitalMemberships.id, assignedToMembershipId),
             });
             if (doctorMembership) {
-                await db.insert(notifications).values({
+                await createNotification({
                     userId: doctorMembership.userId,
                     type: "case_assigned",
-                    message: `New case assigned to you: ${title || "Case #" + newCase.id}`,
+                    message: "A new case has been assigned to you.",
                     link: `/doctor/cases/${newCase.id}`,
-                }).catch(() => {}); // non-fatal
+                });
             }
         }
 
