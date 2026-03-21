@@ -10,6 +10,7 @@ import {
     User,
     Loader2,
 } from "lucide-react";
+import { useSearchParams, useRouter } from "next/navigation";
 import VoiceInputButton from "@/components/voice/VoiceInputButton";
 
 interface Conversation {
@@ -44,11 +45,48 @@ export default function ChatView({ userRole }: ChatViewProps) {
     const [loading, setLoading] = useState(true);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const pollRef = useRef<NodeJS.Timeout | null>(null);
+    
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const newChatUserId = searchParams.get("new");
+    const [initializingNewChat, setInitializingNewChat] = useState(!!newChatUserId);
 
     // Fetch conversations on mount
     useEffect(() => {
         fetchConversations();
     }, []);
+
+    // Handle "new chat" auto-select from query param
+    useEffect(() => {
+        if (!newChatUserId) return;
+        
+        const startNewChat = async () => {
+            try {
+                const res = await fetch("/api/conversations", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ otherUserId: parseInt(newChatUserId) })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.conversation?.id) {
+                        setActiveConvo(data.conversation.id);
+                        // Refresh conversations to ensure it's in the list
+                        await fetchConversations();
+                        // Clear the query param
+                        router.replace(window.location.pathname);
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to init new chat:", error);
+            } finally {
+                setInitializingNewChat(false);
+            }
+        };
+
+        startNewChat();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [newChatUserId]);
 
     // Poll for new messages when a convo is active
     useEffect(() => {

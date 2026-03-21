@@ -30,7 +30,7 @@ export default function DoctorPatientsPage() {
     const [searchQuery, setSearchQuery] = useState("");
 
     const fetchPatients = () => {
-        fetch("/api/users/patients")
+        fetch("/api/users/patients", { cache: "no-store" })
             .then((r) => r.json())
             .then((data) => {
                 setPatients(data.patients || []);
@@ -61,10 +61,15 @@ export default function DoctorPatientsPage() {
             if (res.ok) {
                 setShowAddModal(false);
                 setNewPatient({ name: "", email: "", age: "", gender: "Male", bloodType: "O+", phone: "", medicalHistory: "" });
+                alert("Patient added successfully!");
                 fetchPatients();
+            } else {
+                const data = await res.json();
+                alert(data.error || "Failed to add patient");
             }
         } catch (err) {
             console.error(err);
+            alert("Error adding patient");
         }
         setAddLoading(false);
     };
@@ -271,7 +276,7 @@ export default function DoctorPatientsPage() {
                                     <FileText className="w-3.5 h-3.5" /> History
                                 </button>
                                 <button
-                                    onClick={() => router.push(`/doctor/messages`)}
+                                    onClick={() => router.push(`/doctor/messages?new=${p.id}`)}
                                     className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-cream-200 text-olive-600 rounded-lg text-xs font-display font-bold hover:bg-sage-100 transition-colors"
                                 >
                                     <MessageSquare className="w-3.5 h-3.5" /> Message
