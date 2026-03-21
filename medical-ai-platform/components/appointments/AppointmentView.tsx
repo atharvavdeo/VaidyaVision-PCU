@@ -30,6 +30,7 @@ const STATUS_STYLES: Record<string, { bg: string; text: string; icon: React.Elem
 
 export default function AppointmentView({ userRole }: AppointmentPageProps) {
     const [appointments, setAppointments] = useState<Appointment[]>([]);
+    const [directory, setDirectory] = useState<{id: number, name: string, specialty?: string}[]>([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [formData, setFormData] = useState({
@@ -41,7 +42,20 @@ export default function AppointmentView({ userRole }: AppointmentPageProps) {
 
     useEffect(() => {
         fetchAppointments();
+        fetchDirectory();
     }, []);
+
+    async function fetchDirectory() {
+        try {
+            const res = await fetch("/api/users/directory");
+            if (res.ok) {
+                const data = await res.json();
+                setDirectory(data.users || []);
+            }
+        } catch (err) {
+            console.error("Failed to load directory:", err);
+        }
+    }
 
     async function fetchAppointments() {
         try {
@@ -64,17 +78,23 @@ export default function AppointmentView({ userRole }: AppointmentPageProps) {
             if (userRole === "doctor") body.patientId = parseInt(formData.otherUserId);
             else body.doctorId = parseInt(formData.otherUserId);
 
-            await fetch("/api/appointments", {
+            const res = await fetch("/api/appointments", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(body),
             });
+            
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.error || "Failed to create appointment on server");
+            }
+
             setShowForm(false);
             setFormData({ scheduledAt: "", type: "follow_up", notes: "", otherUserId: "" });
             fetchAppointments();
-        } catch (err) {
+        } catch (err: any) {
             console.error("Create error:", err);
-            alert("Failed to schedule. Please check the ID and try again.");
+            alert("Failed to schedule: " + err.message + ". Please check the ID and try again.");
         }
     }
 
@@ -140,15 +160,23 @@ export default function AppointmentView({ userRole }: AppointmentPageProps) {
                         <div className="space-y-4">
                             <div>
                                 <label className="text-xs font-bold text-olive-500 uppercase tracking-wider mb-1 block">
-                                    {userRole === "doctor" ? "Patient ID" : "Doctor ID"}
+                                    {userRole === "doctor" ? "Select Patient" : "Select Doctor"}
                                 </label>
-                                <input
-                                    type="number"
-                                    value={formData.otherUserId}
-                                    onChange={(e) => setFormData({ ...formData, otherUserId: e.target.value })}
-                                    className="w-full px-4 py-3 bg-cream-50 border border-sage-200 rounded-xl focus:outline-none focus:border-olive-500 focus:ring-1 focus:ring-olive-500 transition"
-                                    placeholder="Enter user ID"
-                                />
+                                <div className="relative">
+                                    <select
+                                        value={formData.otherUserId}
+                                        onChange={(e) => setFormData({ ...formData, otherUserId: e.target.value })}
+                                        className="w-full px-4 py-3 bg-cream-50 border border-sage-200 rounded-xl focus:outline-none focus:border-olive-500 focus:ring-1 focus:ring-olive-500 transition appearance-none"
+                                    >
+                                        <option value="" disabled>Select a {userRole === "doctor" ? "patient" : "doctor"}</option>
+                                        {directory.map(user => (
+                                            <option key={user.id} value={user.id}>
+                                                {user.name} {user.specialty ? `(${user.specialty})` : ""}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <ChevronRight className="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 rotate-90 text-olive-400 pointer-events-none" />
+                                </div>
                             </div>
                             <div>
                                 <label className="text-xs font-bold text-olive-500 uppercase tracking-wider mb-1 block">Date & Time</label>
