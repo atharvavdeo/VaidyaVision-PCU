@@ -164,11 +164,12 @@ export async function buildReportPayload(reportId: number): Promise<ReportPayloa
     }
 
     if (tmpl) {
+        // Neon jsonb columns automatically return nested JS Objects through Drizzle, so parsing isn't needed anymore explicitly natively passing AST checks directly.
         templateBlock = {
             id: tmpl.id,
             name: tmpl.name,
-            slotConfig: tmpl.sectionSchemaJson ? JSON.parse(tmpl.sectionSchemaJson) : {},
-            signatureConfig: tmpl.signatureConfigJson ? JSON.parse(tmpl.signatureConfigJson) : {},
+            slotConfig: (tmpl.sectionSchemaJson as any) || {},
+            signatureConfig: (tmpl.signatureConfigJson as any) || {},
             disclaimerText: tmpl.disclaimerText,
             logoUrl: tmpl.logoUrl,
             headerImageUrl: tmpl.headerImageUrl,

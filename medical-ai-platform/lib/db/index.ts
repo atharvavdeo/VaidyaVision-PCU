@@ -1,14 +1,7 @@
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
+import { neon } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-http';
 import * as schema from "./schema";
-import path from "path";
 
-const dbPath = path.join(process.cwd(), "data", "vaidyavision.db");
+const sql = neon(process.env.DATABASE_URL!);
 
-const sqlite = new Database(dbPath);
-
-// Enable WAL mode for better concurrent read performance
-sqlite.pragma("journal_mode = WAL");
-sqlite.pragma("foreign_keys = ON");
-
-export const db = drizzle(sqlite, { schema });
+export const db = drizzle(sql, { schema });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
     Upload,
@@ -13,6 +13,7 @@ import {
     AlertCircle,
     ArrowLeft,
     User,
+    Mic,
 } from "lucide-react";
 
 const MODALITIES = [
@@ -20,9 +21,10 @@ const MODALITIES = [
     { id: "lung", label: "Lung X-ray", icon: Stethoscope, color: "bg-sage-100 text-olive-700 border-sage-300", activeColor: "bg-olive-800 text-cream-50 border-olive-800" },
     { id: "skin", label: "Skin Photo", icon: Scan, color: "bg-sage-100 text-olive-700 border-sage-300", activeColor: "bg-olive-800 text-cream-50 border-olive-800" },
     { id: "ecg", label: "ECG Image", icon: HeartPulse, color: "bg-sage-100 text-olive-700 border-sage-300", activeColor: "bg-olive-800 text-cream-50 border-olive-800" },
+    { id: "audio", label: "Cough Audio", icon: Mic, color: "bg-sage-100 text-olive-700 border-sage-300", activeColor: "bg-olive-800 text-cream-50 border-olive-800" },
 ] as const;
 
-export default function DoctorNewScanPage() {
+function NewScanContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const patientId = searchParams.get("patientId");
@@ -46,15 +48,19 @@ export default function DoctorNewScanPage() {
     }, [patientId]);
 
     const handleFile = useCallback((f: File) => {
-        if (!f.type.startsWith("image/")) {
-            setError("Please upload an image file (JPEG, PNG)");
+        if (!f.type.startsWith("image/") && !f.type.startsWith("audio/") && !f.type.includes("video/")) {
+            setError("Please upload an image or audio file (JPEG, PNG, MP3, WAV)");
             return;
         }
         setFile(f);
         setError(null);
-        const reader = new FileReader();
-        reader.onload = (e) => setPreview(e.target?.result as string);
-        reader.readAsDataURL(f);
+        if (f.type.startsWith("image/")) {
+            const reader = new FileReader();
+            reader.onload = (e) => setPreview(e.target?.result as string);
+            reader.readAsDataURL(f);
+        } else {
+            setPreview("AUDIO_FILE");
+        }
     }, []);
 
     const handleDrop = useCallback(
@@ -141,7 +147,7 @@ export default function DoctorNewScanPage() {
                 <h2 className="text-sm font-display font-bold uppercase tracking-wider text-olive-800 mb-4">
                     1. Select Scan Type
                 </h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                     {MODALITIES.map((m) => {
                         const Icon = m.icon;
                         const isActive = modality === m.id;
@@ -169,11 +175,18 @@ export default function DoctorNewScanPage() {
 
                 {preview ? (
                     <div className="relative">
-                        <img
-                            src={preview}
-                            alt="Preview"
-                            className="w-full max-h-80 object-contain rounded-lg bg-cream-200"
-                        />
+                        {preview === "AUDIO_FILE" ? (
+                            <div className="w-full h-80 bg-sage-50 rounded-lg flex flex-col items-center justify-center border-2 border-sage-200">
+                                <Mic className="w-16 h-16 text-olive-300 mb-4 animate-pulse" />
+                                <span className="font-display font-medium text-olive-500">Audio ready for analysis</span>
+                            </div>
+                        ) : (
+                            <img
+                                src={preview}
+                                alt="Preview"
+                                className="w-full max-h-80 object-contain rounded-lg bg-cream-200"
+                            />
+                        )}
                         <button
                             onClick={() => { setFile(null); setPreview(null); }}
                             className="absolute top-2 right-2 p-1.5 bg-olive-900/70 rounded-full text-cream-50 hover:bg-olive-900"
@@ -199,15 +212,15 @@ export default function DoctorNewScanPage() {
                     >
                         <Upload className="w-10 h-10 mx-auto mb-3 text-olive-400" />
                         <p className="text-sm font-display font-bold text-olive-700">
-                            Drag & drop the scan here, or click to browse
+                            Drag & drop the scan/audio here, or click to browse
                         </p>
                         <p className="text-xs text-olive-400 mt-1">
-                            Supports JPEG, PNG • Max 10MB
+                            Supports JPEG, PNG, MP3, WAV • Max 10MB
                         </p>
                         <input
                             id="file-input"
                             type="file"
-                            accept="image/*"
+                            accept="image/*,audio/*"
                             className="hidden"
                             onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }}
                         />
@@ -251,5 +264,13 @@ export default function DoctorNewScanPage() {
                 )}
             </button>
         </div>
+    );
+}
+
+export default function DoctorNewScanPage() {
+    return (
+        <Suspense fallback={<div className="p-8 text-olive-600 flex items-center justify-center h-screen">Loading scan setup...</div>}>
+            <NewScanContent />
+        </Suspense>
     );
 }

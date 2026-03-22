@@ -3,7 +3,7 @@ import timm
 import cv2
 import librosa
 import numpy as np
-import matplotlib.pyplot as plt
+import numpy as np
 from pathlib import Path
 import torch.nn as nn
 import torch.nn.functional as F
@@ -42,15 +42,6 @@ class Config:
 # ==========================================
 # 2. MODEL ARCHITECTURE
 # ==========================================
-class Specialist(nn.Module):
-    def __init__(self, in_dim, out_dim):
-        super().__init__()
-        self.net = nn.Sequential(
-            nn.Linear(in_dim, 512), nn.LayerNorm(512), nn.ReLU(),
-            nn.Linear(512, out_dim)
-        )
-    def forward(self, x): return self.net(x)
-
 class MedicalMoE(nn.Module):
     def __init__(self):
         super().__init__()
@@ -60,7 +51,10 @@ class MedicalMoE(nn.Module):
         
         self.router = nn.Sequential(nn.Linear(dim, 256), nn.ReLU(), nn.Linear(256, len(Config.domains)))
         self.heads = nn.ModuleDict({
-            dom: Specialist(dim, len(Config.DOMAIN_LABELS[dom])) for dom in Config.domains
+            dom: nn.Sequential(
+                nn.Linear(dim, 512), nn.LayerNorm(512), nn.ReLU(),
+                nn.Linear(512, len(Config.DOMAIN_LABELS[dom]))
+            ) for dom in Config.domains
         })
         self.lora_A = nn.ParameterDict({d: nn.Parameter(torch.randn(dim, 8)*0.01) for d in Config.domains})
         self.lora_B = nn.ParameterDict({d: nn.Parameter(torch.zeros(8, dim)) for d in Config.domains})
@@ -165,37 +159,4 @@ class MedicalPredictor:
 # ==========================================
 # 5. EXECUTION EXAMPLE
 # ==========================================
-def show_result(res):
-    plt.figure(figsize=(10, 5))
-    
-    # 1. Base Image/Spectrogram
-    plt.subplot(1, 2, 1)
-    plt.imshow(res['visual_base'], cmap='gray' if res['mode'] == 'Audio' else None)
-    plt.title(f"Input ({res['mode']})")
-    plt.axis('off')
-
-    # 2. HiResCAM Overlay
-    plt.subplot(1, 2, 2)
-    heatmap = cv2.resize(res['heatmap'], (Config.img_size, Config.img_size))
-    heatmap = np.uint8(255 * heatmap)
-    heatmap = cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)
-    heatmap = cv2.cvtColor(heatmap, cv2.COLOR_BGR2RGB)
-    
-    base = res['visual_base']
-    if res['mode'] == 'Audio':
-        base = np.uint8(255 * np.stack([base]*3, axis=-1))
-    elif base.max() <= 1.0:
-        base = np.uint8(255 * base)
-        
-    overlay = cv2.addWeighted(base, 0.6, heatmap, 0.4, 0)
-    plt.imshow(overlay)
-    plt.title(f"Pred: {res['diagnosis']}\nConf: {res['confidence']:.2%}")
-    plt.axis('off')
-    
-    plt.tight_layout()
-    plt.show()
-
-# To use:
-# predictor = MedicalPredictor("medical_moe_final.pth")
-# result = predictor.predict("path_to_your_test_file.jpg")
-# show_result(result)
+# End of inference module

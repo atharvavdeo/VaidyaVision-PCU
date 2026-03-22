@@ -129,10 +129,15 @@ export default function DoctorQueuePage() {
                                                 </span>
                                             )}
                                         </div>
-                                        <div className="flex items-center gap-4 text-sm text-olive-600">
-                                            <span className="flex items-center gap-1">
+                                        <div className="flex items-center flex-wrap gap-4 text-sm text-olive-600">
+                                            <span className="flex items-center gap-1 uppercase">
                                                 <Scan className="w-3 h-3" /> {scan.modality || "X-Ray"}
                                             </span>
+                                            {scan.aiDiagnosis && (
+                                                <span className="flex items-center gap-1 font-bold text-olive-800 capitalize bg-sage-200/50 px-2 py-0.5 rounded-md">
+                                                    • {scan.aiDiagnosis.replace(/_/g, ' ')}
+                                                </span>
+                                            )}
                                             <span className="flex items-center gap-1">
                                                 <Clock className="w-3 h-3" /> {new Date(scan.uploadedAt).toLocaleDateString()}
                                             </span>

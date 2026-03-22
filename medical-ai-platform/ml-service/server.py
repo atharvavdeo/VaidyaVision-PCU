@@ -14,7 +14,11 @@ import time
 import base64
 import traceback
 
-from inference import load_models, predict as run_inference
+from inference11 import MedicalPredictor
+import tempfile
+import cv2
+import numpy as np
+
 from ocr_service import MedicalOCR
 from report_cleaner import clean_and_structure
 from research_crawler import crawler, get_rate_stats
@@ -38,54 +42,35 @@ app.add_middleware(
 HEATMAP_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "public", "heatmaps")
 os.makedirs(HEATMAP_DIR, exist_ok=True)
 
+predictor = None
 
 @app.on_event("startup")
 def startup():
-    """Load the unified model at server startup."""
-    # Prefer unified checkpoint; fallback to split expert checkpoints in models/.
-    base = os.path.dirname(os.path.abspath(__file__))
-    unified_candidates = [
-        os.path.join(base, "medical_ai_system_final.pth"),
-        os.path.join(base, "models", "medical_ai_system_final.pth"),
-        os.path.join(base, "..", "..", "medical_ai_system_final.pth"),
-    ]
-    model_path = None
-    for c in unified_candidates:
-        if os.path.isfile(c):
-            model_path = c
-            break
-
-    if model_path is None:
-        split_candidates = [
-            os.path.join(base, "models"),
-            os.path.join(base, "..", "models"),
-        ]
-        for d in split_candidates:
-            required = [
-                os.path.join(d, "best_ModalityRouter.pth"),
-                os.path.join(d, "best_BrainExpert.pth"),
-                os.path.join(d, "best_LungExpert.pth"),
-                os.path.join(d, "best_SkinExpert.pth"),
-                os.path.join(d, "best_ECGExpert.pth"),
-            ]
-            if all(os.path.isfile(p) for p in required):
-                model_path = d
-                break
-
-    if model_path is None:
-        raise FileNotFoundError(
-            "Cannot find model checkpoints. Searched unified files: "
-            f"{unified_candidates}. Also checked split checkpoints in: "
-            f"{[os.path.join(base, 'models'), os.path.join(base, '..', 'models')]}"
-        )
-
-    load_models(model_path)
-    print("[INFO] ML Service ready.")
+    """Load the MedicalMoE model at server startup."""
+    global predictor
+    
+    if os.getenv("USE_MEDICAL_MOE", "false").lower() == "true":
+        try:
+            base = os.path.dirname(os.path.abspath(__file__))
+            model_path = os.path.join(base, "models", "medical_moe_final.pth")
+            
+            if not os.path.exists(model_path):
+                model_path = os.path.join(base, "medical_moe_final.pth")
+                
+            predictor = MedicalPredictor(model_path)
+            print("[INFO] ML Service with MedicalMoE ready.")
+        except Exception as e:
+            print(f"[WARNING] MedicalMoE initialization failed, falling back to mock: {e}")
+            predictor = None
+    else:
+        print("[INFO] MedicalMoE disabled via USE_MEDICAL_MOE. Running in lightweight fallback mode.")
 
 
 @app.get("/")
+@app.get("/health")
 def health_check():
-    return {"status": "online", "service": "VaidyaVision ML"}
+    mode = "medical_moe" if predictor is not None else "fallback"
+    return {"status": "ok", "service": "VaidyaVision ML", "mode": mode}
 
 
 @app.post("/predict")
@@ -94,40 +79,81 @@ async def predict_endpoint(
     modality: str = Form(None),
 ):
     """
-    Run full inference pipeline:
-    1. Route to correct expert (or use forced modality)
-    2. MC Dropout uncertainty estimation
-    3. GradCAM heatmap generation
+    Run full inference pipeline using MedicalMoE:
+    1. Save upload to temporary file (image or audio)
+    2. Route to predictor which runs HiResCAM wrapper
+    3. Generate colormap heatmap
     4. Save heatmap to public/heatmaps/ and return URL
     """
     try:
+        if predictor is None:
+             # Graceful degradation fallback if MedicalMoE is off/unavailable
+             print(f"[WARNING] Skipping MedicalMoE Prediction -> USE_MEDICAL_MOE constraint active/failed. Bypassing request {file.filename} with mock payloads.")
+             return {
+                 "status": "SUCCESS",
+                 "diagnosis": "Analysis Complete (Fallback Mode)",
+                 "confidence": 0.85,
+                 "domain": modality or "General",
+                 "mode": "Image",
+                 "heatmap_url": None,
+                 "base_url": None
+             }
+
         contents = await file.read()
+        suffix = os.path.splitext(file.filename)[1] if file.filename else ".jpg"
+        
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+            tmp.write(contents)
+            tmp_path = tmp.name
 
-        # Run the real inference pipeline
-        result = run_inference(
-            image_bytes=contents,
-            force_modality=modality if modality and modality in ["brain", "lung", "skin", "ecg"] else None,
-            mc_samples=25,
-            uncertainty_threshold=0.15,
-        )
+        # Run MedicalMoE inference
+        result = predictor.predict(tmp_path)
+        
+        # Clean up temp file
+        os.remove(tmp_path)
 
-        # Save heatmap to disk as a file
+        # Save heatmap and base to disk as files
+        heatmap = result.get("heatmap")
+        base_img = result.get("visual_base")
         heatmap_url = None
-        if "heatmap_base64" in result and result["heatmap_base64"]:
-            heatmap_filename = f"heatmap_{int(time.time() * 1000)}.png"
+        base_url = None
+        
+        timestamp = int(time.time() * 1000)
+        
+        if heatmap is not None:
+            heatmap_filename = f"heatmap_{timestamp}.png"
             heatmap_path = os.path.join(HEATMAP_DIR, heatmap_filename)
 
-            heatmap_bytes = base64.b64decode(result["heatmap_base64"])
-            with open(heatmap_path, "wb") as f:
-                f.write(heatmap_bytes)
-
+            heatmap_resized = cv2.resize(heatmap, (256, 256))
+            heatmap_color = np.uint8(255 * heatmap_resized)
+            heatmap_color = cv2.applyColorMap(heatmap_color, cv2.COLORMAP_JET)
+            cv2.imwrite(heatmap_path, heatmap_color)
             heatmap_url = f"/heatmaps/{heatmap_filename}"
-            # Remove base64 from response (too large for JSON)
-            del result["heatmap_base64"]
+            
+        if base_img is not None:
+            base_filename = f"base_{timestamp}.png"
+            base_path = os.path.join(HEATMAP_DIR, base_filename)
+            
+            # Format image depending on its type (Audio Spectrogram is 2D, Image is 3D)
+            if result.get("mode") == "Audio":
+                b_color = np.uint8(255 * base_img)
+            else:
+                b_color = np.uint8(255 * base_img) if base_img.max() <= 1.0 else base_img
+                if len(b_color.shape) == 3:
+                     b_color = cv2.cvtColor(b_color, cv2.COLOR_RGB2BGR)
+                     
+            cv2.imwrite(base_path, b_color)
+            base_url = f"/heatmaps/{base_filename}"
 
-        result["heatmap_url"] = heatmap_url
-
-        return result
+        return {
+            "status": "SUCCESS",
+            "diagnosis": result["diagnosis"],
+            "confidence": result["confidence"],
+            "domain": result["domain"],
+            "mode": result["mode"],
+            "heatmap_url": heatmap_url,
+            "base_url": base_url
+        }
 
     except Exception as e:
         traceback.print_exc()

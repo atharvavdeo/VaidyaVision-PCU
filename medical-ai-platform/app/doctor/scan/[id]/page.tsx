@@ -23,7 +23,8 @@ import {
     RefreshCw,
     Download,
     Printer,
-    Mic
+    Mic,
+    MessageSquare
 } from "lucide-react";
 import VoiceInputButton from "@/components/voice/VoiceInputButton";
 
@@ -45,10 +46,8 @@ export default function ScanReview() {
     const [generatingReport, setGeneratingReport] = useState(false);
     const [runningML, setRunningML] = useState(false);
     const [doctorNotes, setDoctorNotes] = useState("");
-    const [emailSending, setEmailSending] = useState(false);
-    const [emailSent, setEmailSent] = useState(false);
-    const [callSending, setCallSending] = useState(false);
-    const [callSent, setCallSent] = useState(false);
+    const [notifying, setNotifying] = useState(false);
+    const [notified, setNotified] = useState(false);
     const [toast, setToast] = useState<{msg: string; type: 'success'|'error'} | null>(null);
 
     useEffect(() => {
@@ -94,20 +93,27 @@ export default function ScanReview() {
             });
             const mlData = await mlRes.json();
 
-            if (mlData.status === "ACCEPTED" || mlData.status === "REJECTED") {
+            if (mlData.status === "ACCEPTED" || mlData.status === "REJECTED" || mlData.status === "SUCCESS") {
+                const patchBody: any = {
+                    aiDiagnosis: mlData.status === "REJECTED" ? `UNCERTAIN: ${mlData.reason || 'High uncertainty'}` : mlData.diagnosis,
+                    aiConfidence: mlData.confidence ?? 0,
+                    aiUncertainty: mlData.uncertainty ?? 0,
+                    heatmapUrl: mlData.heatmap_url,
+                    expertUsed: mlData.domain || mlData.modality,
+                    triageScore: mlData.triage_score ?? 0,
+                    status: mlData.status === "REJECTED" ? "rejected" : "pending",
+                };
+                
+                // For audio files, overwrite the generic audio source with the rendered spectrogram
+                if (mlData.base_url) {
+                    patchBody.imageUrl = mlData.base_url;
+                }
+
                 // Update scan in DB via PATCH
                 await fetch(`/api/scans/${scan.id}`, {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        aiDiagnosis: mlData.status === "REJECTED" ? `UNCERTAIN: ${mlData.reason || 'High uncertainty'}` : mlData.diagnosis,
-                        aiConfidence: mlData.confidence ?? 0,
-                        aiUncertainty: mlData.uncertainty ?? 0,
-                        heatmapUrl: mlData.heatmap_url,
-                        expertUsed: mlData.modality,
-                        triageScore: mlData.triage_score ?? 0,
-                        status: mlData.status === "REJECTED" ? "rejected" : "pending",
-                    }),
+                    body: JSON.stringify(patchBody),
                 });
                 // Refresh scan data
                 await fetchScanResult();
@@ -228,54 +234,30 @@ export default function ScanReview() {
         }
     };
 
-    const sendEmailReport = async () => {
-        if (!scan) return;
-        setEmailSending(true);
-        try {
-            const res = await fetch("/api/send-report-email", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ scanId: scan.id })
-            });
-            const data = await res.json();
-            if (data.sent) {
-                setEmailSent(true);
-                showToast(`Email sent to ${scan.patient?.email || 'patient'}`);
-            } else {
-                showToast("Email failed: " + (data.error || "Unknown error"), "error");
-            }
-        } catch (err) {
-            showToast("Email service error", "error");
+    const dispatchNotifications = async () => {
+        const rId = savedReportId || (scan?.reports && scan.reports.length > 0 ? scan.reports[0].id : null);
+        
+        if (!rId) {
+            showToast("You must draft and save a report before notifying the patient.", "error");
+            return;
         }
-        setEmailSending(false);
-    };
 
-    const callPatient = async () => {
-        if (!scan) return;
-        setCallSending(true);
+        setNotifying(true);
         try {
-            const phone = scan.patient?.phone || "+917021470357";
-            const res = await fetch("/api/call-reminder", {
+            const res = await fetch(`/api/reports/${rId}/notify`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    patientPhone: phone,
-                    patientName: scan.patient?.name || "Patient",
-                    patientId: scan.patientId || scan.patient?.id,
-                    appointmentTime: "your upcoming appointment"
-                })
             });
             const data = await res.json();
-            if (data.called) {
-                setCallSent(true);
-                showToast(`Call initiated to ${phone}`);
+            if (data.notified) {
+                setNotified(true);
+                showToast(`Sent! SMS: ${data.waStatus} | Email: ${data.emailStatus}`);
             } else {
-                showToast("Call failed: " + (data.error || "Twilio not configured"), "error");
+                showToast("Dispatch failed: " + (data.error || "Unknown error"), "error");
             }
         } catch (err) {
-            showToast("Call service error", "error");
+            showToast("Notification service error", "error");
         }
-        setCallSending(false);
+        setNotifying(false);
     };
 
     if (loading) return (
@@ -323,26 +305,17 @@ export default function ScanReview() {
                     </div>
                 </div>
                 <div className="flex gap-2 items-center">
-                    {/* Quick Actions: Call & Email */}
+                    {/* Quick Actions: Dispatch WhatsApp & Email */}
                     <button
-                        onClick={callPatient}
-                        disabled={callSending}
-                        title="Call patient"
-                        className={`p-2.5 rounded-xl border transition-all ${
-                            callSent ? 'bg-sage-200 border-sage-400 text-olive-800' : 'bg-cream-100 border-sage-300 text-olive-600 hover:bg-sage-100 hover:border-olive-500 hover:text-olive-800'
+                        onClick={dispatchNotifications}
+                        disabled={notifying}
+                        title="Send via SMS & Email"
+                        className={`px-4 py-2.5 rounded-xl border transition-all flex items-center gap-2 ${
+                            notified ? 'bg-sage-200 border-sage-400 text-olive-800 font-bold' : 'bg-cream-100 border-sage-300 text-olive-700 font-bold hover:bg-sage-100 hover:border-olive-500'
                         }`}
                     >
-                        {callSending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Phone className="w-5 h-5" />}
-                    </button>
-                    <button
-                        onClick={sendEmailReport}
-                        disabled={emailSending}
-                        title="Email report to patient"
-                        className={`p-2.5 rounded-xl border transition-all ${
-                            emailSent ? 'bg-sage-200 border-sage-400 text-olive-800' : 'bg-cream-100 border-sage-300 text-olive-600 hover:bg-sage-100 hover:border-olive-500 hover:text-olive-800'
-                        }`}
-                    >
-                        {emailSending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Mail className="w-5 h-5" />}
+                        {notifying ? <Loader2 className="w-4 h-4 animate-spin" /> : <MessageSquare className="w-4 h-4" />}
+                        {notified ? "Sent ✓" : "Send SMS & Email"}
                     </button>
                     <span className={`px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wider ${scan.priority === 'critical' ? 'bg-red-100 text-red-700' :
                             scan.priority === 'high' ? 'bg-orange-100 text-orange-700' :
@@ -355,19 +328,38 @@ export default function ScanReview() {
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 {/* Left: Image Viewer (7 cols) */}
-                <div className="lg:col-span-7 bg-olive-900 rounded-2xl overflow-hidden shadow-2xl relative group min-h-[500px] flex items-center justify-center">
-                    <img
-                        src={scan.imageUrl}
-                        className="max-w-full max-h-[600px] object-contain"
-                        alt="Medical Scan"
-                    />
+                <div className="lg:col-span-7 bg-olive-900 rounded-2xl overflow-hidden shadow-2xl relative group min-h-[500px] flex text-cream-50 items-center justify-center">
+                    {scan.modality === "audio" ? (
+                        <div className="flex flex-col items-center justify-center w-full h-full p-4 overflow-y-auto">
+                            {scan.spectrogramUrl || (scan.imageUrl && !scan.imageUrl.match(/\.(mp3|wav|ogg|m4a)$/i)) ? (
+                                <img
+                                    src={scan.spectrogramUrl || scan.imageUrl}
+                                    className="max-w-full max-h-[400px] object-contain mb-8 rounded-xl shadow-lg bg-olive-950"
+                                    alt="Audio Spectrogram"
+                                />
+                            ) : (
+                                <div className="text-center mb-10 mt-8">
+                                    <Mic className="w-16 h-16 text-sage-400 mb-6 mx-auto animate-pulse" />
+                                    <h3 className="text-2xl font-display font-bold mb-2">Patient Audio Evidence</h3>
+                                    <p className="text-olive-400 text-sm max-w-sm mx-auto">Audio has not been analyzed yet. Run the ML pipeline to generate a diagnostic spectrogram.</p>
+                                </div>
+                            )}
+                            <audio controls src={scan.audioUrl || scan.imageUrl} className="w-full max-w-md shadow-md rounded-full" />
+                        </div>
+                    ) : (
+                        <img
+                            src={scan.imageUrl}
+                            className="max-w-full max-h-[600px] object-contain"
+                            alt="Medical Scan"
+                        />
+                    )}
 
                     {showHeatmap && scan.heatmapUrl && (
                         <img
                             src={scan.heatmapUrl}
                             className="absolute inset-0 w-full h-full object-contain"
                             style={{ opacity: heatmapOpacity }}
-                            alt="Heatmap"
+                            alt="Heatmap overlay"
                         />
                     )}
 
@@ -432,7 +424,7 @@ export default function ScanReview() {
                             </div>
                             <div>
                                 <h2 className="text-lg font-display font-bold text-olive-900">AI Diagnosis</h2>
-                                <p className="text-sm text-olive-500">
+                                <p className="text-sm text-olive-500 capitalize">
                                     {scan.expertUsed ? `${scan.expertUsed} Expert` : scan.modality?.toUpperCase() + " Analysis"}
                                 </p>
                             </div>
@@ -442,7 +434,9 @@ export default function ScanReview() {
                             <>
                                 <div className="mb-4">
                                     <div className="flex justify-between items-end mb-2">
-                                        <span className="text-2xl font-display font-bold text-olive-900">{scan.aiDiagnosis}</span>
+                                        <span className="text-2xl font-display font-bold text-olive-900 capitalize">
+                                            {scan.aiDiagnosis?.replace(/_/g, ' ')}
+                                        </span>
                                         <span className="text-olive-800 font-bold text-lg">{confidencePercent}%</span>
                                     </div>
                                     <div className="w-full bg-sage-200 rounded-full h-3 overflow-hidden">
@@ -516,20 +510,12 @@ export default function ScanReview() {
                         {/* Quick contact row */}
                         <div className="flex gap-2 pt-1">
                             <button
-                                onClick={sendEmailReport}
-                                disabled={emailSending}
-                                className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-cream-200 text-olive-700 rounded-xl text-sm font-medium hover:bg-sage-200 transition border border-sage-300"
+                                onClick={dispatchNotifications}
+                                disabled={notifying}
+                                className="w-full flex items-center justify-center gap-2 py-3 bg-cream-200 text-olive-800 font-bold rounded-xl text-sm hover:bg-sage-200 transition border border-sage-300"
                             >
-                                {emailSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
-                                {emailSent ? "Email Sent ✓" : "Email Patient"}
-                            </button>
-                            <button
-                                onClick={callPatient}
-                                disabled={callSending}
-                                className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-cream-200 text-olive-700 rounded-xl text-sm font-medium hover:bg-sage-200 transition border border-sage-300"
-                            >
-                                {callSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Phone className="w-4 h-4" />}
-                                {callSent ? "Called ✓" : "Call Patient"}
+                                {notifying ? <Loader2 className="w-4 h-4 animate-spin" /> : <MessageSquare className="w-4 h-4" />}
+                                {notified ? "Report Dispatched (SMS + Email) ✓" : "Send SMS & Email Alert"}
                             </button>
                         </div>
                     </div>
