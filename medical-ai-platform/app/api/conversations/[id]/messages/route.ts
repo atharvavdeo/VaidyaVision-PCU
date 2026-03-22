@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
-import { messages, conversations, users, notifications } from "@/lib/db/schema";
+import { messages, conversations, notifications } from "@/lib/db/schema";
 import { eq, asc } from "drizzle-orm";
 import { getAuthUser } from "@/lib/api-auth";
 
@@ -11,8 +10,8 @@ export async function GET(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const { userId } = await auth();
-        if (!userId) {
+        const user = await getAuthUser();
+        if (!user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
@@ -20,6 +19,21 @@ export async function GET(
         const conversationId = parseInt(id);
         if (isNaN(conversationId)) {
             return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+        }
+
+        const conversation = await db.query.conversations.findFirst({
+            where: eq(conversations.id, conversationId),
+        });
+
+        if (!conversation) {
+            return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
+        }
+
+        const isParticipant =
+            conversation.patientId === user.id || conversation.doctorId === user.id;
+
+        if (!isParticipant) {
+            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
 
         const msgs = await db.query.messages.findMany({

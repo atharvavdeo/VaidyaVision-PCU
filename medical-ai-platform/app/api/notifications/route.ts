@@ -1,22 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
-import { notifications, users } from "@/lib/db/schema";
+import { notifications } from "@/lib/db/schema";
 import { eq, desc, and, sql } from "drizzle-orm";
+import { getAuthUser } from "@/lib/api-auth";
 
 // GET /api/notifications — Get notifications for current user
 export async function GET() {
     try {
-        const { userId } = await auth();
-        if (!userId) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
-        const user = await db.query.users.findFirst({
-            where: eq(users.clerkId, userId),
-        });
+        const user = await getAuthUser();
         if (!user) {
-            return NextResponse.json({ error: "User not found" }, { status: 404 });
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         const [notifs, unreadRes] = await Promise.all([
@@ -42,16 +35,9 @@ export async function GET() {
 // PATCH /api/notifications — Mark all as read
 export async function PATCH() {
     try {
-        const { userId } = await auth();
-        if (!userId) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
-        const user = await db.query.users.findFirst({
-            where: eq(users.clerkId, userId),
-        });
+        const user = await getAuthUser();
         if (!user) {
-            return NextResponse.json({ error: "User not found" }, { status: 404 });
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         await db

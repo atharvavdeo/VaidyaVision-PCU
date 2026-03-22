@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
-import { users } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { getAuthUser } from "@/lib/api-auth";
 
 const ML_SERVICE_URL = process.env.ML_SERVICE_URL || "http://localhost:8000";
 
@@ -12,17 +10,9 @@ const ML_SERVICE_URL = process.env.ML_SERVICE_URL || "http://localhost:8000";
  */
 export async function POST(req: NextRequest) {
     try {
-        const { userId } = await auth();
-        if (!userId) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
-        const user = await db.query.users.findFirst({
-            where: eq(users.clerkId, userId),
-        });
-
+        const user = await getAuthUser();
         if (!user) {
-            return NextResponse.json({ error: "User not found" }, { status: 404 });
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         const formData = await req.formData();

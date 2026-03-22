@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
-import { users, medications, medicationLogs } from "@/lib/db/schema";
+import { medications, medicationLogs } from "@/lib/db/schema";
 import { eq, and, desc } from "drizzle-orm";
+import { getAuthUser } from "@/lib/api-auth";
 
 /**
  * GET /api/medications — List medications for the current user (patient or doctor viewing patient)
@@ -10,11 +10,8 @@ import { eq, and, desc } from "drizzle-orm";
  */
 export async function GET(req: NextRequest) {
     try {
-        const { userId } = await auth();
-        if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-        const user = await db.query.users.findFirst({ where: eq(users.clerkId, userId) });
-        if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+        const user = await getAuthUser();
+        if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const { searchParams } = new URL(req.url);
         const patientIdParam = searchParams.get("patientId");
@@ -52,11 +49,8 @@ export async function GET(req: NextRequest) {
  */
 export async function POST(req: NextRequest) {
     try {
-        const { userId } = await auth();
-        if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-        const user = await db.query.users.findFirst({ where: eq(users.clerkId, userId) });
-        if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+        const user = await getAuthUser();
+        if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const body = await req.json();
         const {

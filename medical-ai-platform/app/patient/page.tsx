@@ -39,22 +39,38 @@ export default function PatientDashboard() {
     const [stats, setStats] = useState<PatientStats | null>(null);
     const [recentScans, setRecentScans] = useState<RecentScan[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         fetch("/api/analytics")
-            .then((r) => r.json())
+            .then((r) => {
+                if (!r.ok) {
+                    throw new Error("Failed to load analytics");
+                }
+                return r.json();
+            })
             .then((data) => {
                 setStats(data.stats);
                 setRecentScans(data.recentScans || []);
+                setError(null);
                 setLoading(false);
             })
-            .catch(() => setLoading(false));
+            .catch(() => {
+                setError("Unable to load dashboard data. Please refresh and try again.");
+                setLoading(false);
+            });
     }, []);
 
     const s = stats || { totalScans: 0, completedScans: 0, pendingScans: 0, appointments: 0 };
 
     return (
         <div className="space-y-6">
+            {error && (
+                <div className="rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+                    {error}
+                </div>
+            )}
+
             {/* Welcome Banner */}
             <div className="bg-olive-900 rounded-2xl p-8 text-cream-50 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />

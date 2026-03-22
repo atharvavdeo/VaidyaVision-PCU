@@ -1,23 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
-import { users, medications } from "@/lib/db/schema";
+import { medications } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
+import { getAuthUser } from "@/lib/api-auth";
 
 /**
  * PATCH /api/medications/[id] — Update a medication
  */
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
-        const { userId } = await auth();
-        if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-        const user = await db.query.users.findFirst({ where: eq(users.clerkId, userId) });
-        if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+        const user = await getAuthUser();
+        if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const { id } = await params;
         const medId = parseInt(id);
         const body = await req.json();
+
+        const existingMed = await db.query.medications.findFirst({
+            where: eq(medications.id, medId),
+        });
+        if (!existingMed) return NextResponse.json({ error: "Medication not found" }, { status: 404 });
+        if (user.role === "patient" && existingMed.patientId !== user.id) {
+            return NextResponse.json({ error: "Access denied" }, { status: 403 });
+        }
 
         const updateData: Record<string, unknown> = {};
         const fields = ["drugName", "dosage", "form", "frequency", "timeOfDay", "duration", "startDate", "endDate", "instructions", "isActive"];
@@ -46,14 +51,19 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
  */
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
-        const { userId } = await auth();
-        if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-        const user = await db.query.users.findFirst({ where: eq(users.clerkId, userId) });
-        if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+        const user = await getAuthUser();
+        if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const { id } = await params;
         const medId = parseInt(id);
+
+        const existingMed = await db.query.medications.findFirst({
+            where: eq(medications.id, medId),
+        });
+        if (!existingMed) return NextResponse.json({ error: "Medication not found" }, { status: 404 });
+        if (user.role === "patient" && existingMed.patientId !== user.id) {
+            return NextResponse.json({ error: "Access denied" }, { status: 403 });
+        }
 
         await db.delete(medications).where(eq(medications.id, medId));
 

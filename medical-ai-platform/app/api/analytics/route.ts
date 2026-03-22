@@ -1,22 +1,15 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { scans, users, appointments, reports, conversations, messages } from "@/lib/db/schema";
 import { eq, count, avg, and, gte, desc, sql } from "drizzle-orm";
+import { getAuthUser } from "@/lib/api-auth";
 
 // GET /api/analytics — Dashboard analytics (role-aware)
 export async function GET() {
     try {
-        const { userId } = await auth();
-        if (!userId) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
-        const user = await db.query.users.findFirst({
-            where: eq(users.clerkId, userId),
-        });
+        const user = await getAuthUser();
         if (!user) {
-            return NextResponse.json({ error: "User not found" }, { status: 404 });
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);

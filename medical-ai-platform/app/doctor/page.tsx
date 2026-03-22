@@ -35,6 +35,7 @@ export default function DoctorDashboard() {
     const [stats, setStats] = useState<any>(null);
     const [appointments, setAppointments] = useState<Appointment[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     const fetchStats = async () => {
         try {
@@ -42,13 +43,20 @@ export default function DoctorDashboard() {
                 fetch("/api/doctor/stats"),
                 fetch("/api/appointments"),
             ]);
+
+            if (!statsRes.ok || !aptsRes.ok) {
+                throw new Error("Failed to load dashboard data");
+            }
+
             const data = await statsRes.json();
             const aptsData = await aptsRes.json();
             setStats(data);
             setAppointments(aptsData.appointments || []);
+            setError(null);
             setLoading(false);
         } catch (error) {
             console.error("Failed to fetch stats:", error);
+            setError("Unable to load complete dashboard data. Please retry.");
             setLoading(false);
         }
     };
@@ -76,6 +84,18 @@ export default function DoctorDashboard() {
 
     return (
         <div className="min-h-screen bg-cream-50 p-6 md:p-8 font-sans text-olive-900">
+            {error && (
+                <div className="mb-4 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 flex items-center justify-between">
+                    <span>{error}</span>
+                    <button
+                        onClick={fetchStats}
+                        className="ml-4 rounded-md border border-red-300 px-3 py-1 text-xs font-bold uppercase tracking-wide hover:bg-red-100"
+                    >
+                        Retry
+                    </button>
+                </div>
+            )}
+
             {/* Header Section */}
             <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                 <div>

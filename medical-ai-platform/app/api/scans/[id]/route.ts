@@ -1,29 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
-import { scans, users } from "@/lib/db/schema";
+import { scans } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
+import { getAuthUser } from "@/lib/api-auth";
 
 // PATCH /api/scans/[id] — Doctor: update scan (accept/reject, add notes)
 export async function PATCH(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const { userId } = await auth();
-        if (!userId) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
-        const user = await db.query.users.findFirst({
-            where: eq(users.clerkId, userId),
-        });
+        const user = await getAuthUser();
 
         if (!user || user.role !== "doctor") {
             return NextResponse.json({ error: "Doctor access only" }, { status: 403 });
         }
 
-        const scanId = parseInt(params.id);
+        const { id } = await params;
+        const scanId = parseInt(id);
         if (isNaN(scanId)) {
             return NextResponse.json({ error: "Invalid scan ID" }, { status: 400 });
         }
@@ -57,15 +51,16 @@ export async function PATCH(
 // GET /api/scans/[id] — Get single scan details
 export async function GET(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const { userId } = await auth();
-        if (!userId) {
+        const user = await getAuthUser();
+        if (!user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const scanId = parseInt(params.id);
+        const { id } = await params;
+        const scanId = parseInt(id);
         if (isNaN(scanId)) {
             return NextResponse.json({ error: "Invalid scan ID" }, { status: 400 });
         }
@@ -77,6 +72,10 @@ export async function GET(
 
         if (!scan) {
             return NextResponse.json({ error: "Scan not found" }, { status: 404 });
+        }
+
+        if (user.role === "patient" && scan.patientId !== user.id) {
+            return NextResponse.json({ error: "Access denied" }, { status: 403 });
         }
 
         return NextResponse.json({ scan });

@@ -1,22 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
-import { appointments, users, notifications } from "@/lib/db/schema";
-import { eq, desc, and, gte } from "drizzle-orm";
+import { appointments, notifications } from "@/lib/db/schema";
+import { eq, desc } from "drizzle-orm";
+import { getAuthUser } from "@/lib/api-auth";
 
 // GET /api/appointments — List appointments
 export async function GET() {
     try {
-        const { userId } = await auth();
-        if (!userId) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
-        const user = await db.query.users.findFirst({
-            where: eq(users.clerkId, userId),
-        });
+        const user = await getAuthUser();
         if (!user) {
-            return NextResponse.json({ error: "User not found" }, { status: 404 });
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         const whereClause =
@@ -40,16 +33,9 @@ export async function GET() {
 // POST /api/appointments — Schedule a new appointment
 export async function POST(req: NextRequest) {
     try {
-        const { userId } = await auth();
-        if (!userId) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
-        const user = await db.query.users.findFirst({
-            where: eq(users.clerkId, userId),
-        });
+        const user = await getAuthUser();
         if (!user) {
-            return NextResponse.json({ error: "User not found" }, { status: 404 });
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         const body = await req.json();
@@ -97,8 +83,8 @@ export async function POST(req: NextRequest) {
 // PATCH /api/appointments — Update appointment status
 export async function PATCH(req: NextRequest) {
     try {
-        const { userId } = await auth();
-        if (!userId) {
+        const user = await getAuthUser();
+        if (!user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
@@ -107,6 +93,22 @@ export async function PATCH(req: NextRequest) {
 
         if (!appointmentId || !status) {
             return NextResponse.json({ error: "appointmentId, status required" }, { status: 400 });
+        }
+
+        const appointment = await db.query.appointments.findFirst({
+            where: eq(appointments.id, appointmentId),
+        });
+
+        if (!appointment) {
+            return NextResponse.json({ error: "Appointment not found" }, { status: 404 });
+        }
+
+        const canUpdate =
+            (user.role === "doctor" && appointment.doctorId === user.id) ||
+            (user.role === "patient" && appointment.patientId === user.id);
+
+        if (!canUpdate) {
+            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
 
         await db

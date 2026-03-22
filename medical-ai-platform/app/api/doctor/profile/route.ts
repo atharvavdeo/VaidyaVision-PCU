@@ -1,28 +1,22 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
-import { doctorProfiles, users } from "@/lib/db/schema";
+import { doctorProfiles } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
+import { getAuthUser } from "@/lib/api-auth";
 
 export async function GET() {
     try {
-        const { userId } = await auth();
-        if (!userId) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
-        const user = await db.query.users.findFirst({
-            where: eq(users.clerkId, userId),
-            with: {
-                doctorProfile: true
-            }
-        });
+        const user = await getAuthUser();
 
         if (!user || user.role !== "doctor") {
             return NextResponse.json({ error: "Unauthorized - Doctor only" }, { status: 403 });
         }
 
-        return NextResponse.json({ profile: user.doctorProfile });
+        const doctorProfile = await db.query.doctorProfiles.findFirst({
+            where: eq(doctorProfiles.userId, user.id),
+        });
+
+        return NextResponse.json({ profile: doctorProfile });
 
     } catch (error) {
         console.error("[GET /api/doctor/profile] Error:", error);
@@ -32,17 +26,13 @@ export async function GET() {
 
 export async function PUT(req: Request) {
     try {
-        const { userId } = await auth();
-        if (!userId) {
+        const user = await getAuthUser();
+        if (!user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         const body = await req.json();
         const { specialty, degree, licenseNumber, experience } = body;
-
-        const user = await db.query.users.findFirst({
-            where: eq(users.clerkId, userId),
-        });
 
         if (!user || user.role !== "doctor") {
             return NextResponse.json({ error: "Unauthorized - Doctor only" }, { status: 403 });

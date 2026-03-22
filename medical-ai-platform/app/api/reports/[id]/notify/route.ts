@@ -1,30 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
-import { reports, users } from "@/lib/db/schema";
+import { reports } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
+import { getAuthUser } from "@/lib/api-auth";
 
 export async function POST(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         // 1. Auth: doctor-only
-        const { userId } = await auth();
-        if (!userId) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
-        const user = await db.query.users.findFirst({
-            where: eq(users.clerkId, userId),
-        });
+        const user = await getAuthUser();
         
         if (!user || user.role !== "doctor") {
             return NextResponse.json({ error: "Doctor access only" }, { status: 403 });
         }
 
         // 2. Load report with relations
-        const reportId = parseInt(params.id);
+        const { id } = await params;
+        const reportId = parseInt(id);
         if (isNaN(reportId)) {
             return NextResponse.json({ error: "Invalid report ID" }, { status: 400 });
         }

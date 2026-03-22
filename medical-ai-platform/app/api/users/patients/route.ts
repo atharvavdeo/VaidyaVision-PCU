@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -43,14 +42,7 @@ export async function GET() {
 // POST /api/users/patients — Doctor quick-adds a patient
 export async function POST(req: Request) {
     try {
-        const { userId } = await auth();
-        if (!userId) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
-        const doctor = await db.query.users.findFirst({
-            where: eq(users.clerkId, userId),
-        });
+        const doctor = await getAuthUser();
 
         if (!doctor || doctor.role !== "doctor") {
             return NextResponse.json({ error: "Doctor access only" }, { status: 403 });

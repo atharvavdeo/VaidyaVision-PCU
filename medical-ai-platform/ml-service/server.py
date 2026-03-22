@@ -6,6 +6,7 @@ Includes OCR extraction and Groq-powered report cleaning.
 from dotenv import load_dotenv
 import os
 load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env.local"))
+load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env"))
 
 from fastapi import FastAPI, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
@@ -14,7 +15,7 @@ import time
 import base64
 import traceback
 
-from inference11 import MedicalPredictor
+from inference import load_models, predict
 import tempfile
 import cv2
 import numpy as np
@@ -52,13 +53,27 @@ def startup():
     if os.getenv("USE_MEDICAL_MOE", "false").lower() == "true":
         try:
             base = os.path.dirname(os.path.abspath(__file__))
-            model_path = os.path.join(base, "models", "medical_moe_final.pth")
-            
-            if not os.path.exists(model_path):
-                model_path = os.path.join(base, "medical_moe_final.pth")
-                
-            predictor = MedicalPredictor(model_path)
-            print("[INFO] ML Service with MedicalMoE ready.")
+            models_dir = os.path.join(base, "models")
+            unified_checkpoint = os.path.join(models_dir, "medical_moe_final.pth")
+            root_checkpoint = os.path.join(base, "medical_moe_final.pth")
+
+            # Prefer unified checkpoint, fallback to split checkpoints directory.
+            if os.path.exists(unified_checkpoint):
+                load_models(unified_checkpoint)
+                predictor = "loaded"
+                print(f"[INFO] MedicalMoE ready (unified checkpoint): {unified_checkpoint}")
+            elif os.path.exists(root_checkpoint):
+                load_models(root_checkpoint)
+                predictor = "loaded"
+                print(f"[INFO] MedicalMoE ready (root checkpoint): {root_checkpoint}")
+            elif os.path.isdir(models_dir):
+                load_models(models_dir)
+                predictor = "loaded"
+                print(f"[INFO] MedicalMoE ready (split checkpoints): {models_dir}")
+            else:
+                raise FileNotFoundError(
+                    "No compatible model checkpoint found in ml-service/models or ml-service root"
+                )
         except Exception as e:
             print(f"[WARNING] MedicalMoE initialization failed, falling back to mock: {e}")
             predictor = None
@@ -100,57 +115,35 @@ async def predict_endpoint(
              }
 
         contents = await file.read()
-        suffix = os.path.splitext(file.filename)[1] if file.filename else ".jpg"
-        
-        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
-            tmp.write(contents)
-            tmp_path = tmp.name
+        force_modality = modality if modality in {"brain", "lung", "skin", "ecg"} else None
 
         # Run MedicalMoE inference
-        result = predictor.predict(tmp_path)
-        
-        # Clean up temp file
-        os.remove(tmp_path)
+        result = predict(contents, force_modality=force_modality)
 
         # Save heatmap and base to disk as files
-        heatmap = result.get("heatmap")
-        base_img = result.get("visual_base")
         heatmap_url = None
         base_url = None
         
         timestamp = int(time.time() * 1000)
-        
-        if heatmap is not None:
+
+        heatmap_b64 = result.get("heatmap_base64")
+        if heatmap_b64:
             heatmap_filename = f"heatmap_{timestamp}.png"
             heatmap_path = os.path.join(HEATMAP_DIR, heatmap_filename)
 
-            heatmap_resized = cv2.resize(heatmap, (256, 256))
-            heatmap_color = np.uint8(255 * heatmap_resized)
-            heatmap_color = cv2.applyColorMap(heatmap_color, cv2.COLORMAP_JET)
-            cv2.imwrite(heatmap_path, heatmap_color)
+            heatmap_bytes = base64.b64decode(heatmap_b64)
+            with open(heatmap_path, "wb") as f:
+                f.write(heatmap_bytes)
             heatmap_url = f"/heatmaps/{heatmap_filename}"
-            
-        if base_img is not None:
-            base_filename = f"base_{timestamp}.png"
-            base_path = os.path.join(HEATMAP_DIR, base_filename)
-            
-            # Format image depending on its type (Audio Spectrogram is 2D, Image is 3D)
-            if result.get("mode") == "Audio":
-                b_color = np.uint8(255 * base_img)
-            else:
-                b_color = np.uint8(255 * base_img) if base_img.max() <= 1.0 else base_img
-                if len(b_color.shape) == 3:
-                     b_color = cv2.cvtColor(b_color, cv2.COLOR_RGB2BGR)
-                     
-            cv2.imwrite(base_path, b_color)
-            base_url = f"/heatmaps/{base_filename}"
 
         return {
-            "status": "SUCCESS",
-            "diagnosis": result["diagnosis"],
-            "confidence": result["confidence"],
-            "domain": result["domain"],
-            "mode": result["mode"],
+            "status": result.get("status", "SUCCESS"),
+            "diagnosis": result.get("diagnosis", "Analysis Complete"),
+            "confidence": result.get("confidence", 0),
+            "domain": result.get("modality") or modality,
+            "mode": "Image",
+            "uncertainty": result.get("uncertainty"),
+            "triage_score": result.get("triage_score"),
             "heatmap_url": heatmap_url,
             "base_url": base_url
         }

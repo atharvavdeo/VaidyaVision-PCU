@@ -1,19 +1,12 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
-import { users, emailConnections } from "@/lib/db/schema";
+import { emailConnections } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
+import { getAuthUser } from "@/lib/api-auth";
 
 export async function GET() {
     try {
-        const { userId } = await auth();
-        if (!userId) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
-        const user = await db.query.users.findFirst({
-            where: eq(users.clerkId, userId),
-        });
+        const user = await getAuthUser();
         if (!user || user.role !== "doctor") {
             return NextResponse.json({ error: "Doctor access only" }, { status: 403 });
         }

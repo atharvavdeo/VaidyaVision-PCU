@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
-import { reports, users, emailConnections } from "@/lib/db/schema";
+import { reports, emailConnections } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { readFile } from "fs/promises";
 import path from "path";
+import { getAuthUser } from "@/lib/api-auth";
 
 /**
  * PR7 — Centralized release orchestration.
@@ -21,18 +21,11 @@ import path from "path";
  */
 export async function POST(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         // 1. Auth: doctor-only
-        const { userId } = await auth();
-        if (!userId) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
-        const user = await db.query.users.findFirst({
-            where: eq(users.clerkId, userId),
-        });
+        const user = await getAuthUser();
         if (!user || user.role !== "doctor") {
             return NextResponse.json({ error: "Doctor access only" }, { status: 403 });
         }
@@ -47,7 +40,8 @@ export async function POST(
         }
 
         // 2. Load report
-        const reportId = parseInt(params.id);
+        const { id } = await params;
+        const reportId = parseInt(id);
         if (isNaN(reportId)) {
             return NextResponse.json({ error: "Invalid report ID" }, { status: 400 });
         }

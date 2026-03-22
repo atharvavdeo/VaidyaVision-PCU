@@ -1,23 +1,16 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { eq, inArray } from "drizzle-orm";
+import { getAuthUser } from "@/lib/api-auth";
 
 // GET /api/users/directory — Get a list of patients and doctors for dropdowns
 export async function GET() {
     try {
-        const { userId } = await auth();
-        if (!userId) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
-        const currentUser = await db.query.users.findFirst({
-            where: eq(users.clerkId, userId),
-        });
+        const currentUser = await getAuthUser();
 
         if (!currentUser) {
-            return NextResponse.json({ error: "User not found" }, { status: 404 });
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         // If the current user is a doctor, they might want to book appointments with patients

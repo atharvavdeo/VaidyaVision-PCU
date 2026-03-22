@@ -1,28 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
-import { reports, users } from "@/lib/db/schema";
+import { reports } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
+import { getAuthUser } from "@/lib/api-auth";
 
 // GET /api/reports/[id] — Get a single report with all details
 export async function GET(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const { userId } = await auth();
-        if (!userId) {
+        const user = await getAuthUser();
+        if (!user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const user = await db.query.users.findFirst({
-            where: eq(users.clerkId, userId),
-        });
-        if (!user) {
-            return NextResponse.json({ error: "User not found" }, { status: 404 });
-        }
-
-        const reportId = parseInt(params.id);
+        const { id } = await params;
+        const reportId = parseInt(id);
         const report = await db.query.reports.findFirst({
             where: eq(reports.id, reportId),
             with: { scan: true, patient: true, doctor: true, hospitalTemplate: true },

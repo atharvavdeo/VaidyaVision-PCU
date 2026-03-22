@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
-import { apiKeys, users } from "@/lib/db/schema";
+import { apiKeys } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { randomBytes } from "crypto";
+import { getAuthUser } from "@/lib/api-auth";
 
 function generateApiKey(env: "test" | "live"): string {
     const prefix = env === "live" ? "vv_live_" : "vv_test_";
@@ -14,11 +14,8 @@ function generateApiKey(env: "test" | "live"): string {
 // GET  — list all API keys for the current user
 export async function GET() {
     try {
-        const { userId } = await auth();
-        if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-        const user = await db.query.users.findFirst({ where: eq(users.clerkId, userId) });
-        if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+        const user = await getAuthUser();
+        if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const keys = await db.query.apiKeys.findMany({
             where: eq(apiKeys.userId, user.id),
@@ -41,11 +38,8 @@ export async function GET() {
 // POST — create a new API key
 export async function POST(req: NextRequest) {
     try {
-        const { userId } = await auth();
-        if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-        const user = await db.query.users.findFirst({ where: eq(users.clerkId, userId) });
-        if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+        const user = await getAuthUser();
+        if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const body = await req.json();
         const { name, environment = "test", scopes = "predict,ocr" } = body;
@@ -89,11 +83,8 @@ export async function POST(req: NextRequest) {
 // DELETE — revoke an API key
 export async function DELETE(req: NextRequest) {
     try {
-        const { userId } = await auth();
-        if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-        const user = await db.query.users.findFirst({ where: eq(users.clerkId, userId) });
-        if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+        const user = await getAuthUser();
+        if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const { searchParams } = new URL(req.url);
         const keyId = searchParams.get("id");

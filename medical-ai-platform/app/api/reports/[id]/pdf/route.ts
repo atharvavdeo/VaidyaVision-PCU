@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
-import { reports, users } from "@/lib/db/schema";
+import { reports } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { buildReportPayload } from "@/lib/reports/buildReportPayload";
 import { renderToBuffer } from "@react-pdf/renderer";
@@ -9,6 +8,7 @@ import { HospitalReportDocument } from "@/lib/reports/renderHospitalReportPdf";
 import { mkdir, writeFile, access } from "fs/promises";
 import path from "path";
 import React from "react";
+import { getAuthUser } from "@/lib/api-auth";
 
 const REPORTS_DIR = path.join(process.cwd(), "public", "generated-reports");
 
@@ -23,24 +23,18 @@ async function fileExists(filePath: string): Promise<boolean> {
 
 export async function GET(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         // 1. Auth
-        const { userId } = await auth();
-        if (!userId) {
+        const user = await getAuthUser();
+        if (!user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const user = await db.query.users.findFirst({
-            where: eq(users.clerkId, userId),
-        });
-        if (!user) {
-            return NextResponse.json({ error: "User not found" }, { status: 404 });
-        }
-
         // 2. Load report
-        const reportId = parseInt(params.id);
+        const { id } = await params;
+        const reportId = parseInt(id);
         if (isNaN(reportId)) {
             return NextResponse.json({ error: "Invalid report ID" }, { status: 400 });
         }

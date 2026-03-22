@@ -1,23 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
-import { scans, users } from "@/lib/db/schema";
+import { scans } from "@/lib/db/schema";
 import { eq, desc, and } from "drizzle-orm";
+import { getAuthUser } from "@/lib/api-auth";
 
 // GET /api/scans — List scans (role-filtered)
 export async function GET(req: NextRequest) {
     try {
-        const { userId } = await auth();
-        if (!userId) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
-        const user = await db.query.users.findFirst({
-            where: eq(users.clerkId, userId),
-        });
-
+        const user = await getAuthUser();
         if (!user) {
-            return NextResponse.json({ error: "User not found" }, { status: 404 });
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         const searchParams = req.nextUrl.searchParams;

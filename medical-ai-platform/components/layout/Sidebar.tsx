@@ -25,6 +25,7 @@ import {
     FlaskConical,
     UserCircle,
     Send,
+    Sparkles,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -45,6 +46,7 @@ const doctorNav: NavItem[] = [
     { label: "Prescriptions",    href: "/doctor/prescriptions",   icon: ClipboardList },
     { label: "Upload Rx",        href: "/doctor/scan/prescriptions", icon: Upload },
     { label: "Messages",         href: "/doctor/messages",        icon: MessageSquare },
+    { label: "Copilot",          href: "/doctor/copilot",         icon: Sparkles },
     { label: "Appointments",     href: "/doctor/appointments",    icon: Calendar },
     { label: "Research",         href: "/doctor/research",        icon: BookOpen },
     { label: "Profile",          href: "/doctor/profile",         icon: UserCircle },

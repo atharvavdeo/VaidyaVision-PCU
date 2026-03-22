@@ -1,19 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
-import { users, medicationLogs } from "@/lib/db/schema";
+import { medicationLogs } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
+import { getAuthUser } from "@/lib/api-auth";
 
 /**
  * POST /api/medications/log — Log a medication as taken/missed/skipped
  */
 export async function POST(req: NextRequest) {
     try {
-        const { userId } = await auth();
-        if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-        const user = await db.query.users.findFirst({ where: eq(users.clerkId, userId) });
-        if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+        const user = await getAuthUser();
+        if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const { medicationId, status, scheduledTime, notes } = await req.json();
 
