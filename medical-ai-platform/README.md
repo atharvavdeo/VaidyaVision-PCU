@@ -19,6 +19,7 @@
 - [Overview](#overview)
 - [Key Features](#key-features)
 - [System Architecture](#system-architecture)
+- [Patient Dossier](#patient-dossier)
 - [ML Pipeline - Deep Dive](#ml-pipeline--deep-dive)
   - [Modality Router](#modality-router)
   - [Expert Models](#expert-models)
@@ -70,8 +71,53 @@ The platform employs a **Mixture-of-Experts (MoE)** architecture with a routing 
 | **Appointments** | Scheduling system | Book, confirm, cancel with automated reminders |
 | **Family** | Family member management | Patients can manage dependents' health records |
 | **Voice Notes** | Web Speech API dictation | Doctors dictate notes directly on scan reviews |
+| **Patient Dossier** | Unified doctor dossier | Single timeline + records surface with notes/files/doctor prescriptions |
 | **Auth** | Clerk SSO | Role-based access (patient / doctor / admin) |
 | **Responsive** | Mobile-first UI | Framer Motion animations, Spline 3D backgrounds |
+
+---
+
+## Patient Dossier
+
+The doctor-facing dossier is available at:
+
+- `/doctor/patients/[id]/dossier`
+
+It combines data from existing records and new additive tables without changing legacy routes.
+
+### New Additive Tables
+
+- `patient_notes`
+- `patient_files`
+- `doctor_prescriptions`
+- `doctor_prescription_items`
+- `patient_allergies`
+- `patient_conditions`
+
+### New API Routes
+
+- `GET /api/doctor/patients/[id]/dossier`
+- `POST /api/doctor/patients/[id]/notes`
+- `PATCH /api/doctor/patients/[id]/notes/[noteId]`
+- `POST /api/doctor/patients/[id]/files`
+- `POST /api/doctor/patients/[id]/prescriptions`
+- `PATCH /api/doctor/patients/[id]/prescriptions/[prescriptionId]`
+- `PATCH /api/doctor/patients/[id]/prescriptions/[prescriptionId]/items/[itemId]`
+
+### Authorization Model
+
+- Caller must be a doctor.
+- Hackathon demo mode: any doctor can access dossier routes for any existing patient record.
+- Invalid or non-patient IDs return `404 Patient not found`.
+- Existing patient history route (`/api/doctor/patients/[id]`) is unchanged.
+
+### Notes
+
+- Existing `prescriptions` table remains OCR-document storage.
+- Structured doctor-authored prescriptions are stored in `doctor_prescriptions` and `doctor_prescription_items`.
+- Dossier messages and voice notes are fetched via indirect joins:
+    - messages via `conversations.patient_id`
+    - voice notes via `scans.patient_id`
 
 ---
 

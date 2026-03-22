@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Users, User, Scan, MessageSquare, Calendar, FileText, Plus, X, Loader2, Phone, Mail, Upload } from "lucide-react";
+import { Users, User, Scan, MessageSquare, Calendar, FileText, Plus, X, Loader2, Phone, Mail, Upload, Activity } from "lucide-react";
 import VoiceInputButton from "@/components/voice/VoiceInputButton";
 
 interface Patient {
@@ -274,6 +274,12 @@ export default function DoctorPatientsPage() {
                                     className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-sage-200 text-olive-700 rounded-lg text-xs font-display font-bold hover:bg-sage-300 transition-colors"
                                 >
                                     <FileText className="w-3.5 h-3.5" /> History
+                                </button>
+                                <button
+                                    onClick={() => router.push(`/doctor/patients/${p.id}/dossier`)}
+                                    className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-olive-800 text-cream-50 rounded-lg text-xs font-display font-bold hover:bg-olive-900 transition-colors"
+                                >
+                                    <Activity className="w-3.5 h-3.5" /> Dossier
                                 </button>
                                 <button
                                     onClick={() => router.push(`/doctor/messages?new=${p.id}`)}

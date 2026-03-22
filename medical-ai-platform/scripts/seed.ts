@@ -1,5 +1,21 @@
 import { db } from "../lib/db";
-import { users, doctorProfiles, scans, appointments, templates, conversations, messages, notifications, reports } from "../lib/db/schema";
+import {
+    users,
+    doctorProfiles,
+    scans,
+    appointments,
+    templates,
+    conversations,
+    messages,
+    notifications,
+    reports,
+    patientNotes,
+    patientFiles,
+    doctorPrescriptions,
+    doctorPrescriptionItems,
+    patientAllergies,
+    patientConditions,
+} from "../lib/db/schema";
 import { eq } from "drizzle-orm";
 import fs from "fs";
 import path from "path";
@@ -54,6 +70,7 @@ async function main() {
             });
             console.log("👨‍⚕️ Created profile for Dr. " + doctor.name);
         }
+
     }
 
     // 4. Create 5 Patients with detailed profiles
@@ -107,6 +124,98 @@ async function main() {
             }).where(eq(users.id, patient.id));
         }
         createdPatients.push(patient);
+    }
+
+    if (doctor) {
+        // -- SEED DATA: Patient dossier additive records
+        for (const patient of createdPatients) {
+            const existingAllergy = await db.query.patientAllergies.findFirst({
+                where: eq(patientAllergies.patientId, patient.id),
+            });
+            if (!existingAllergy) {
+                await db.insert(patientAllergies).values({
+                    patientId: patient.id,
+                    allergen: "Penicillin",
+                    severity: "Moderate",
+                    notes: "Reported rash after prior exposure",
+                });
+            }
+
+            const existingCondition = await db.query.patientConditions.findFirst({
+                where: eq(patientConditions.patientId, patient.id),
+            });
+            if (!existingCondition) {
+                await db.insert(patientConditions).values({
+                    patientId: patient.id,
+                    condition: "Hypertension",
+                    diagnosedAt: "2022-08-15",
+                    status: "Chronic",
+                    notes: "Under regular monitoring",
+                });
+            }
+
+            const existingNote = await db.query.patientNotes.findFirst({
+                where: eq(patientNotes.patientId, patient.id),
+            });
+            if (!existingNote) {
+                await db.insert(patientNotes).values({
+                    patientId: patient.id,
+                    doctorId: doctor.id,
+                    content: `Follow-up advised for ${patient.name}; continue medication and symptom diary.`,
+                    linkedToType: null,
+                    linkedToId: null,
+                });
+            }
+
+            const existingFile = await db.query.patientFiles.findFirst({
+                where: eq(patientFiles.patientId, patient.id),
+            });
+            if (!existingFile) {
+                await db.insert(patientFiles).values({
+                    patientId: patient.id,
+                    doctorId: doctor.id,
+                    fileName: "seed-lab-summary.pdf",
+                    fileUrl: "/uploads/a509797a678f8e_CHF-1c1.jpg",
+                    fileType: "application/pdf",
+                    fileSize: 184320,
+                    linkedToType: null,
+                    linkedToId: null,
+                });
+            }
+
+            const existingDoctorPrescription = await db.query.doctorPrescriptions.findFirst({
+                where: eq(doctorPrescriptions.patientId, patient.id),
+                with: { items: true },
+            });
+
+            if (!existingDoctorPrescription) {
+                const [createdPrescription] = await db.insert(doctorPrescriptions).values({
+                    patientId: patient.id,
+                    doctorId: doctor.id,
+                    title: "Initial OPD Prescription",
+                    notes: "Take after meals and maintain hydration.",
+                }).returning();
+
+                await db.insert(doctorPrescriptionItems).values([
+                    {
+                        doctorPrescriptionId: createdPrescription.id,
+                        medicineName: "Paracetamol",
+                        dosage: "500mg",
+                        frequency: "Twice daily",
+                        duration: "5 days",
+                        directions: "After food",
+                    },
+                    {
+                        doctorPrescriptionId: createdPrescription.id,
+                        medicineName: "Pantoprazole",
+                        dosage: "40mg",
+                        frequency: "Once daily",
+                        duration: "7 days",
+                        directions: "Before breakfast",
+                    },
+                ]);
+            }
+        }
     }
 
     // 5. Create 10 Scans

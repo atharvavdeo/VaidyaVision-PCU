@@ -2,10 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { scans, users, notifications } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
-import { randomUUID } from "crypto";
 import { getAuthUser } from "@/lib/api-auth";
+import { persistUploadedFile } from "@/lib/upload";
 
 const ML_SERVICE_URL = process.env.ML_SERVICE_URL || "http://localhost:8000";
 
@@ -43,24 +41,16 @@ export async function POST(req: NextRequest) {
             targetPatientId = patient.id;
         }
 
-        // Save file to public/uploads/
-        const uploadsDir = path.join(process.cwd(), "public", "uploads");
-        await mkdir(uploadsDir, { recursive: true });
-
-        const ext = file.name.split(".").pop() || "jpg";
-        const filename = `${randomUUID()}.${ext}`;
-        const filePath = path.join(uploadsDir, filename);
-
-        const bytes = await file.arrayBuffer();
-        await writeFile(filePath, Buffer.from(bytes));
+        const persisted = await persistUploadedFile(file, "uploads");
+        const { bytes, filename } = persisted;
 
         // Create scan record in DB (status: processing)
         const [scan] = await db
             .insert(scans)
             .values({
                 patientId: targetPatientId,
-                imageUrl: modality === "audio" ? "/heatmaps/pending_audio.png" : `/uploads/${filename}`,
-                audioUrl: modality === "audio" ? `/uploads/${filename}` : null,
+                imageUrl: modality === "audio" ? "/heatmaps/pending_audio.png" : persisted.relativeUrl,
+                audioUrl: modality === "audio" ? persisted.relativeUrl : null,
                 modality: modality as "brain" | "lung" | "skin" | "ecg" | "audio",
                 status: "processing",
                 symptoms: symptoms || null,

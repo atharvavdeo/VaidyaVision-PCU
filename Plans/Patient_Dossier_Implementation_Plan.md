@@ -1,97 +1,300 @@
 # Patient Dossier — Combined Implementation Plan
 
+> **Codebase sync — March 2026**
+> All table names, column names, types, primary key strategies, foreign keys, and ORM patterns
+> are confirmed against `lib/db/schema.ts` and `CODEBASE_STATUS.md`. This plan is
+> implementation-ready with no unresolved gaps.
+
+---
+
 ## Core Principle
 
-**Do not remove or modify any existing functionality.** Every existing route, screen, and data access pattern must continue working exactly as it does today. This plan only adds new things. The dossier is a new unified surface that reads from the same underlying data. Duplication of data access (reading the same record from both an existing route and the new dossier route) is acceptable and intentional.
+**Do not remove or modify any existing functionality.** Every existing route, screen, and data
+access pattern must continue working exactly as it does today. This plan only adds new things.
+The dossier is a new unified surface that reads from the same underlying data. Duplication of
+data access (reading the same record from both an existing route and the new dossier route) is
+acceptable and intentional.
+
+---
+
+## Tech Stack Reference (confirmed)
+
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js 16 (App Router) + React 18 + TypeScript |
+| ORM | Drizzle ORM — snake_case DB columns, camelCase TS fields |
+| Primary keys | `serial` (integer auto-increment) — **not UUID** |
+| Database | PostgreSQL via Neon serverless (`@neondatabase/serverless`) |
+| Migrations | drizzle-kit — output to `medical-ai-platform/drizzle/` |
+| Auth | Clerk (`@clerk/nextjs`) + DB user resolution via `lib/api-auth.ts` |
+
+> ⚠️ **Primary keys are `serial` integers throughout the codebase — not UUIDs.**
+> All new tables must follow the same convention. Do not use `gen_random_uuid()`.
+
+---
+
+## Confirmed Schema Facts (resolved from `schema.ts`)
+
+### `users` table — patient/doctor fields available for the dossier summary
+
+| TS field | DB column | Type | Notes |
+|----------|-----------|------|-------|
+| `id` | `id` | `serial` PK | integer |
+| `name` | `name` | `text` | |
+| `age` | `age` | `integer` | direct field, no computation needed |
+| `gender` | `gender` | `text` | |
+| `bloodType` | `blood_type` | `text` | field is `bloodType`, not `bloodGroup` |
+| `phone` | `phone` | `text` | |
+| `medicalHistory` | `medical_history` | `text` | |
+| `role` | `role` | enum | `'patient'|'doctor'|'admin'|'pathologist'|'hospital_admin'` |
+
+### `voiceNotes` — linked to `scans`, NOT to patients directly
+
+`voice_notes` has no `patientId` column. It links via `scanId → scans.patientId`.
+To fetch voice notes for a patient, join through `scans`:
+
+```ts
+// fetch scanIds for this patient first, then:
+db.query.voiceNotes.findMany({
+  where: inArray(voiceNotes.scanId, patientScanIds),
+  orderBy: [desc(voiceNotes.createdAt)],
+})
+```
+
+### `messages` — linked to `conversations`, NOT to patients directly
+
+`messages` has no `patientId`. Join through `conversations.patientId`:
+
+```ts
+// fetch conversationIds for this patient first, then:
+db.query.messages.findMany({
+  where: inArray(messages.conversationId, patientConversationIds),
+  orderBy: [desc(messages.createdAt)],
+})
+```
+
+### `prescriptions` — OCR-extracted image documents, NOT doctor-written prescriptions
+
+The existing `prescriptions` table stores scanned prescription images with OCR output
+(`imageUrl`, `rawText`, `structuredData` as JSON string, `ocrConfidence`, etc.).
+It is **not** a structured doctor-authored prescription record.
+
+**The dossier needs a separate, new `doctor_prescriptions` table** for structured
+doctor-written prescriptions with line items. The existing `prescriptions` table will
+still be read in the dossier as "Uploaded Prescription Documents" (a distinct section).
+
+### `medications` — the structured drug list (already exists)
+
+`medications` has `patientId`, `prescriptionId` (optional FK to OCR prescriptions),
+`doctorId`, `drugName`, `dosage`, `form`, `frequency`, `duration`, `isActive`,
+`addedBy` (`'ocr'|'doctor'|'patient'`). This is the correct table for structured
+medication data. No new medications table is needed.
+
+### `familyMembers` — has only `patientId`, `relation`, `name`
+
+No additional fields beyond these three columns.
 
 ---
 
 ## Phase 1 — Schema Extensions
 
-These are additive. No existing table is dropped or altered in a breaking way. Add columns only if they don't exist.
+These are additive. No existing table is dropped or altered in a breaking way.
 
-### 1.1 New Tables to Create
+### 1.1 Existing Tables Already Present (no migration needed)
 
-Run these migrations in order. Each table is independent unless a foreign key is noted.
+These will be **read** by the dossier. Do not recreate them.
+
+| Table | TS export | Dossier use |
+|-------|-----------|-------------|
+| `scans` | `scans` | Diagnostic events |
+| `reports` | `reports` | Clinical reports |
+| `appointments` | `appointments` | Scheduled visits |
+| `voice_notes` | `voiceNotes` | Voice transcripts (via scans join) |
+| `conversations` + `messages` | `conversations`, `messages` | Patient-doctor chat (via conversations join) |
+| `family_members` | `familyMembers` | Emergency contacts |
+| `prescriptions` | `prescriptions` | OCR-scanned prescription images |
+| `medications` | `medications` | Structured drug list |
+| `medication_logs` | `medicationLogs` | Medication adherence |
+| `exercise_routines` | `exerciseRoutines` | Prescribed exercises |
+| `exercise_logs` | `exerciseLogs` | Exercise adherence |
+
+---
+
+### 1.2 New Tables to Create
+
+All new tables use `serial` PKs and `integer` FKs, consistent with the rest of the schema.
+All reference `users(id)` for patient/doctor — there is no separate `patients` or `doctors` table.
 
 ---
 
 #### `patient_notes`
 
+Doctor-authored free-text notes about a patient, optionally linked to a specific record.
+
 ```sql
 CREATE TABLE patient_notes (
-  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  patient_id   UUID NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
-  doctor_id    UUID NOT NULL REFERENCES doctors(id),
-  content      TEXT NOT NULL,
-  linked_to_type  TEXT,         -- 'scan' | 'report' | 'appointment' | null
-  linked_to_id    UUID,         -- foreign key to the linked entity, nullable
-  created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+  id              SERIAL PRIMARY KEY,
+  patient_id      INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  doctor_id       INTEGER NOT NULL REFERENCES users(id),
+  content         TEXT NOT NULL,
+  linked_to_type  TEXT,   -- 'scan' | 'report' | 'appointment' | null
+  linked_to_id    INTEGER,
+  created_at      TIMESTAMP NOT NULL DEFAULT now(),
+  updated_at      TIMESTAMP NOT NULL DEFAULT now()
 );
 
 CREATE INDEX idx_patient_notes_patient_id ON patient_notes(patient_id);
 CREATE INDEX idx_patient_notes_doctor_id  ON patient_notes(doctor_id);
 ```
 
+Drizzle definition to add to `schema.ts`:
+
+```ts
+export const patientNotes = pgTable("patient_notes", {
+  id:           serial("id").primaryKey(),
+  patientId:    integer("patient_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  doctorId:     integer("doctor_id").notNull().references(() => users.id),
+  content:      text("content").notNull(),
+  linkedToType: text("linked_to_type"),   // 'scan' | 'report' | 'appointment' | null
+  linkedToId:   integer("linked_to_id"),
+  createdAt:    timestamp("created_at", { mode: "date" }).notNull().$defaultFn(() => new Date()),
+  updatedAt:    timestamp("updated_at", { mode: "date" }).notNull().$defaultFn(() => new Date()),
+});
+
+export const patientNotesRelations = relations(patientNotes, ({ one }) => ({
+  patient: one(users, { fields: [patientNotes.patientId], references: [users.id] }),
+  doctor:  one(users, { fields: [patientNotes.doctorId],  references: [users.id] }),
+}));
+```
+
 ---
 
 #### `patient_files`
 
+Doctor-uploaded files associated with a patient (labs, discharge summaries, external reports).
+Reuses the existing upload infrastructure; only stores metadata.
+
 ```sql
 CREATE TABLE patient_files (
-  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  patient_id   UUID NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
-  doctor_id    UUID NOT NULL REFERENCES doctors(id),
-  file_name    TEXT NOT NULL,
-  file_url     TEXT NOT NULL,        -- storage URL returned by existing upload route
-  file_type    TEXT,                 -- mime type e.g. 'application/pdf'
-  file_size    BIGINT,               -- bytes
-  linked_to_type  TEXT,             -- 'scan' | 'report' | 'appointment' | null
-  linked_to_id    UUID,
-  created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+  id              SERIAL PRIMARY KEY,
+  patient_id      INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  doctor_id       INTEGER NOT NULL REFERENCES users(id),
+  file_name       TEXT NOT NULL,
+  file_url        TEXT NOT NULL,
+  file_type       TEXT,     -- mime type e.g. 'application/pdf'
+  file_size       INTEGER,  -- bytes
+  linked_to_type  TEXT,     -- 'scan' | 'report' | 'appointment' | null
+  linked_to_id    INTEGER,
+  created_at      TIMESTAMP NOT NULL DEFAULT now()
 );
 
 CREATE INDEX idx_patient_files_patient_id ON patient_files(patient_id);
 ```
 
----
+Drizzle definition:
 
-#### `prescriptions`
+```ts
+export const patientFiles = pgTable("patient_files", {
+  id:           serial("id").primaryKey(),
+  patientId:    integer("patient_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  doctorId:     integer("doctor_id").notNull().references(() => users.id),
+  fileName:     text("file_name").notNull(),
+  fileUrl:      text("file_url").notNull(),
+  fileType:     text("file_type"),
+  fileSize:     integer("file_size"),
+  linkedToType: text("linked_to_type"),
+  linkedToId:   integer("linked_to_id"),
+  createdAt:    timestamp("created_at", { mode: "date" }).notNull().$defaultFn(() => new Date()),
+});
 
-```sql
-CREATE TABLE prescriptions (
-  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  patient_id   UUID NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
-  doctor_id    UUID NOT NULL REFERENCES doctors(id),
-  title        TEXT NOT NULL,        -- e.g. "Post-surgery medication plan"
-  notes        TEXT,
-  issued_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at   TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
-CREATE INDEX idx_prescriptions_patient_id ON prescriptions(patient_id);
+export const patientFilesRelations = relations(patientFiles, ({ one }) => ({
+  patient: one(users, { fields: [patientFiles.patientId], references: [users.id] }),
+  doctor:  one(users, { fields: [patientFiles.doctorId],  references: [users.id] }),
+}));
 ```
 
 ---
 
-#### `prescription_items`
+#### `doctor_prescriptions`
+
+Structured prescriptions authored by a doctor (distinct from OCR-scanned `prescriptions`).
 
 ```sql
-CREATE TABLE prescription_items (
-  id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  prescription_id  UUID NOT NULL REFERENCES prescriptions(id) ON DELETE CASCADE,
-  medicine_name    TEXT NOT NULL,
-  dosage           TEXT,             -- e.g. "500mg"
-  frequency        TEXT,             -- e.g. "Twice daily"
-  duration         TEXT,             -- e.g. "7 days"
-  directions       TEXT,             -- e.g. "Take after meals"
-  is_active        BOOLEAN NOT NULL DEFAULT true,
-  created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at       TIMESTAMPTZ NOT NULL DEFAULT now()
+CREATE TABLE doctor_prescriptions (
+  id          SERIAL PRIMARY KEY,
+  patient_id  INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  doctor_id   INTEGER NOT NULL REFERENCES users(id),
+  title       TEXT NOT NULL,
+  notes       TEXT,
+  created_at  TIMESTAMP NOT NULL DEFAULT now(),
+  updated_at  TIMESTAMP NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_prescription_items_prescription_id ON prescription_items(prescription_id);
+CREATE INDEX idx_doctor_prescriptions_patient_id ON doctor_prescriptions(patient_id);
+```
+
+---
+
+#### `doctor_prescription_items`
+
+Individual drug line items for a `doctor_prescription`.
+
+```sql
+CREATE TABLE doctor_prescription_items (
+  id                     SERIAL PRIMARY KEY,
+  doctor_prescription_id INTEGER NOT NULL REFERENCES doctor_prescriptions(id) ON DELETE CASCADE,
+  medicine_name          TEXT NOT NULL,
+  dosage                 TEXT,
+  frequency              TEXT,
+  duration               TEXT,
+  directions             TEXT,
+  is_active              BOOLEAN NOT NULL DEFAULT true,
+  created_at             TIMESTAMP NOT NULL DEFAULT now(),
+  updated_at             TIMESTAMP NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_dpi_prescription_id ON doctor_prescription_items(doctor_prescription_id);
+```
+
+Drizzle definitions:
+
+```ts
+export const doctorPrescriptions = pgTable("doctor_prescriptions", {
+  id:        serial("id").primaryKey(),
+  patientId: integer("patient_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  doctorId:  integer("doctor_id").notNull().references(() => users.id),
+  title:     text("title").notNull(),
+  notes:     text("notes"),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().$defaultFn(() => new Date()),
+  updatedAt: timestamp("updated_at", { mode: "date" }).notNull().$defaultFn(() => new Date()),
+});
+
+export const doctorPrescriptionItems = pgTable("doctor_prescription_items", {
+  id:                   serial("id").primaryKey(),
+  doctorPrescriptionId: integer("doctor_prescription_id").notNull()
+                          .references(() => doctorPrescriptions.id, { onDelete: "cascade" }),
+  medicineName:         text("medicine_name").notNull(),
+  dosage:               text("dosage"),
+  frequency:            text("frequency"),
+  duration:             text("duration"),
+  directions:           text("directions"),
+  isActive:             boolean("is_active").notNull().default(true),
+  createdAt:            timestamp("created_at", { mode: "date" }).notNull().$defaultFn(() => new Date()),
+  updatedAt:            timestamp("updated_at", { mode: "date" }).notNull().$defaultFn(() => new Date()),
+});
+
+export const doctorPrescriptionsRelations = relations(doctorPrescriptions, ({ one, many }) => ({
+  patient: one(users, { fields: [doctorPrescriptions.patientId], references: [users.id] }),
+  doctor:  one(users, { fields: [doctorPrescriptions.doctorId],  references: [users.id] }),
+  items:   many(doctorPrescriptionItems),
+}));
+
+export const doctorPrescriptionItemsRelations = relations(doctorPrescriptionItems, ({ one }) => ({
+  prescription: one(doctorPrescriptions, {
+    fields: [doctorPrescriptionItems.doctorPrescriptionId],
+    references: [doctorPrescriptions.id],
+  }),
+}));
 ```
 
 ---
@@ -100,15 +303,32 @@ CREATE INDEX idx_prescription_items_prescription_id ON prescription_items(prescr
 
 ```sql
 CREATE TABLE patient_allergies (
-  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  patient_id   UUID NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
-  allergen     TEXT NOT NULL,        -- e.g. "Penicillin"
-  severity     TEXT,                 -- e.g. "Mild" | "Moderate" | "Severe"
-  notes        TEXT,
-  created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+  id          SERIAL PRIMARY KEY,
+  patient_id  INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  allergen    TEXT NOT NULL,
+  severity    TEXT,   -- 'Mild' | 'Moderate' | 'Severe'
+  notes       TEXT,
+  created_at  TIMESTAMP NOT NULL DEFAULT now()
 );
 
 CREATE INDEX idx_patient_allergies_patient_id ON patient_allergies(patient_id);
+```
+
+Drizzle definition:
+
+```ts
+export const patientAllergies = pgTable("patient_allergies", {
+  id:        serial("id").primaryKey(),
+  patientId: integer("patient_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  allergen:  text("allergen").notNull(),
+  severity:  text("severity"),
+  notes:     text("notes"),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().$defaultFn(() => new Date()),
+});
+
+export const patientAllergiesRelations = relations(patientAllergies, ({ one }) => ({
+  patient: one(users, { fields: [patientAllergies.patientId], references: [users.id] }),
+}));
 ```
 
 ---
@@ -117,33 +337,52 @@ CREATE INDEX idx_patient_allergies_patient_id ON patient_allergies(patient_id);
 
 ```sql
 CREATE TABLE patient_conditions (
-  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  patient_id   UUID NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
-  condition    TEXT NOT NULL,        -- e.g. "Type 2 Diabetes"
-  diagnosed_at DATE,
-  status       TEXT,                 -- e.g. "Active" | "Resolved" | "Chronic"
+  id           SERIAL PRIMARY KEY,
+  patient_id   INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  condition    TEXT NOT NULL,
+  diagnosed_at TEXT,   -- stored as 'YYYY-MM-DD' string, consistent with medicationLogs.logDate pattern
+  status       TEXT,   -- 'Active' | 'Resolved' | 'Chronic'
   notes        TEXT,
-  created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+  created_at   TIMESTAMP NOT NULL DEFAULT now()
 );
 
 CREATE INDEX idx_patient_conditions_patient_id ON patient_conditions(patient_id);
 ```
 
+Drizzle definition:
+
+```ts
+export const patientConditions = pgTable("patient_conditions", {
+  id:          serial("id").primaryKey(),
+  patientId:   integer("patient_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  condition:   text("condition").notNull(),
+  diagnosedAt: text("diagnosed_at"),   // 'YYYY-MM-DD' string
+  status:      text("status"),
+  notes:       text("notes"),
+  createdAt:   timestamp("created_at", { mode: "date" }).notNull().$defaultFn(() => new Date()),
+});
+
+export const patientConditionsRelations = relations(patientConditions, ({ one }) => ({
+  patient: one(users, { fields: [patientConditions.patientId], references: [users.id] }),
+}));
+```
+
 ---
 
-#### `patient_timeline_events` (optional, for performance)
+#### `patient_timeline_events` (optional — for performance only)
 
-Use this if the dossier timeline query is slow. It is a denormalized cache of events across all record types.
+Only create this if the dossier timeline query is measurably slow in production.
+It is a denormalized cache; source of truth remains the individual tables.
 
 ```sql
 CREATE TABLE patient_timeline_events (
-  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  patient_id   UUID NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
-  event_type   TEXT NOT NULL,        -- 'scan' | 'report' | 'appointment' | 'note' | 'file' | 'prescription' | 'message' | 'voice_note'
-  event_id     UUID NOT NULL,        -- id of the source record
-  event_date   TIMESTAMPTZ NOT NULL,
-  summary      TEXT,                 -- short human-readable label for the event card
-  created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+  id          SERIAL PRIMARY KEY,
+  patient_id  INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  event_type  TEXT NOT NULL,
+  event_id    INTEGER NOT NULL,
+  event_date  TIMESTAMP NOT NULL,
+  summary     TEXT,
+  created_at  TIMESTAMP NOT NULL DEFAULT now()
 );
 
 CREATE INDEX idx_timeline_patient_id_date ON patient_timeline_events(patient_id, event_date DESC);
@@ -151,9 +390,11 @@ CREATE INDEX idx_timeline_patient_id_date ON patient_timeline_events(patient_id,
 
 ---
 
-### 1.2 Seed Updates
+### 1.3 Seed Updates
 
-After running migrations, update the seed file to insert at least one row per new table for each seeded patient. This is so the dossier page never opens to a completely empty state during development. Seed data should be clearly marked with a comment so it is easy to strip before production.
+After running migrations, update the seed file with at least one row per new table for
+each seeded patient. Mark all seed rows with `-- SEED DATA` comment so they can be
+stripped before production.
 
 ---
 
@@ -165,89 +406,230 @@ After running migrations, update the seed file to insert at least one row per ne
 GET /api/doctor/patients/[id]/dossier
 ```
 
-This is a **new route**. The existing `GET /api/doctor/patients/[id]` route must not be changed. It continues to return whatever it returns today. The dossier route returns a richer, unified payload described below.
+File: `medical-ai-platform/app/api/doctor/patients/[id]/dossier/route.ts`
+
+The existing `GET /api/doctor/patients/[id]` route must not be changed.
 
 ---
 
 ### 2.2 Auth Check
 
-At the top of the handler, before any DB query:
+Follow the same pattern as existing route handlers that use `lib/api-auth.ts`:
 
-1. Get the session/token from the request.
-2. Confirm the session user has role `doctor`.
-3. If not a doctor, return `403 Forbidden`.
-4. Optionally, confirm the doctor has access to this patient (e.g., doctor is assigned to the patient or belongs to the same clinic). Return `403` if not.
+1. Resolve the current DB user via the auth helper (`getAuthUser` / `getCurrentUser`).
+2. Confirm `user.role === 'doctor'`. Return `403` if not.
+3. Confirm the doctor has access to this patient: check that a row exists in
+   `patient_hospital_links` where `patientId = id` AND the `hospitalId` matches one
+   of the doctor's active `hospital_memberships`. Return `403` if no matching link.
 
 ---
 
 ### 2.3 Full Query Plan
 
-Run these queries in parallel (use `Promise.all` or equivalent):
+Pre-fetch IDs needed for indirect joins, then run all remaining queries in parallel.
 
 ```ts
+import { db } from '@/lib/db';
+import { eq, inArray, desc } from 'drizzle-orm';
+import {
+  users, scans, reports, appointments, voiceNotes,
+  conversations, messages, familyMembers,
+  prescriptions, medications, medicationLogs,
+  exerciseRoutines, exerciseLogs,
+  patientNotes, patientFiles, patientAllergies, patientConditions,
+  doctorPrescriptions,
+} from '@/lib/db/schema';
+
+const patientId = parseInt(params.id, 10);
+
+// Step 1: fetch IDs needed for indirect joins
+const [patientScans, patientConversations] = await Promise.all([
+  db.select({ id: scans.id }).from(scans).where(eq(scans.patientId, patientId)),
+  db.select({ id: conversations.id }).from(conversations).where(eq(conversations.patientId, patientId)),
+]);
+
+const scanIds         = patientScans.map(s => s.id);
+const conversationIds = patientConversations.map(c => c.id);
+
+// Step 2: fetch everything in parallel
 const [
   patient,
-  scans,
-  reports,
-  appointments,
-  voiceNotes,
-  messages,
-  familyMembers,
-  notes,
-  files,
-  prescriptions,
-  allergies,
-  conditions,
+  allScans,
+  allReports,
+  allAppointments,
+  allVoiceNotes,
+  allMessages,
+  allFamilyMembers,
+  allOcrPrescriptions,
+  allMedications,
+  allMedicationLogs,
+  allExerciseRoutines,
+  allExerciseLogs,
+  allNotes,
+  allFiles,
+  allDoctorPrescriptions,
+  allAllergies,
+  allConditions,
 ] = await Promise.all([
-  db.patients.findUnique({ where: { id: patientId } }),
-  db.scans.findMany({ where: { patient_id: patientId }, orderBy: { created_at: 'desc' } }),
-  db.reports.findMany({ where: { patient_id: patientId }, orderBy: { created_at: 'desc' } }),
-  db.appointments.findMany({ where: { patient_id: patientId }, orderBy: { scheduled_at: 'desc' } }),
-  db.voice_notes.findMany({ where: { patient_id: patientId }, orderBy: { created_at: 'desc' } }),
-  db.messages.findMany({ where: { patient_id: patientId }, orderBy: { sent_at: 'desc' } }),
-  db.family_members.findMany({ where: { patient_id: patientId } }),
-  db.patient_notes.findMany({ where: { patient_id: patientId }, orderBy: { created_at: 'desc' } }),
-  db.patient_files.findMany({ where: { patient_id: patientId }, orderBy: { created_at: 'desc' } }),
-  db.prescriptions.findMany({
-    where: { patient_id: patientId },
-    include: { items: true },
-    orderBy: { issued_at: 'desc' }
+  db.query.users.findFirst({ where: eq(users.id, patientId) }),
+
+  db.query.scans.findMany({
+    where: eq(scans.patientId, patientId),
+    orderBy: [desc(scans.uploadedAt)],
   }),
-  db.patient_allergies.findMany({ where: { patient_id: patientId } }),
-  db.patient_conditions.findMany({ where: { patient_id: patientId } }),
+
+  db.query.reports.findMany({
+    where: eq(reports.patientId, patientId),
+    orderBy: [desc(reports.createdAt)],
+  }),
+
+  db.query.appointments.findMany({
+    where: eq(appointments.patientId, patientId),
+    orderBy: [desc(appointments.scheduledAt)],
+  }),
+
+  // voiceNotes: no patientId — join through scan IDs
+  scanIds.length > 0
+    ? db.query.voiceNotes.findMany({
+        where: inArray(voiceNotes.scanId, scanIds),
+        orderBy: [desc(voiceNotes.createdAt)],
+      })
+    : Promise.resolve([]),
+
+  // messages: no patientId — join through conversation IDs
+  conversationIds.length > 0
+    ? db.query.messages.findMany({
+        where: inArray(messages.conversationId, conversationIds),
+        orderBy: [desc(messages.createdAt)],
+      })
+    : Promise.resolve([]),
+
+  db.query.familyMembers.findMany({
+    where: eq(familyMembers.patientId, patientId),
+  }),
+
+  // existing OCR-scanned prescription images
+  db.query.prescriptions.findMany({
+    where: eq(prescriptions.patientId, patientId),
+    orderBy: [desc(prescriptions.uploadedAt)],
+  }),
+
+  db.query.medications.findMany({
+    where: eq(medications.patientId, patientId),
+    orderBy: [desc(medications.createdAt)],
+  }),
+
+  db.query.medicationLogs.findMany({
+    where: eq(medicationLogs.patientId, patientId),
+    orderBy: [desc(medicationLogs.createdAt)],
+  }),
+
+  db.query.exerciseRoutines.findMany({
+    where: eq(exerciseRoutines.patientId, patientId),
+    orderBy: [desc(exerciseRoutines.createdAt)],
+  }),
+
+  db.query.exerciseLogs.findMany({
+    where: eq(exerciseLogs.patientId, patientId),
+    orderBy: [desc(exerciseLogs.createdAt)],
+  }),
+
+  // new tables
+  db.query.patientNotes.findMany({
+    where: eq(patientNotes.patientId, patientId),
+    orderBy: [desc(patientNotes.createdAt)],
+  }),
+
+  db.query.patientFiles.findMany({
+    where: eq(patientFiles.patientId, patientId),
+    orderBy: [desc(patientFiles.createdAt)],
+  }),
+
+  db.query.doctorPrescriptions.findMany({
+    where: eq(doctorPrescriptions.patientId, patientId),
+    orderBy: [desc(doctorPrescriptions.createdAt)],
+    with: { items: true },
+  }),
+
+  db.query.patientAllergies.findMany({
+    where: eq(patientAllergies.patientId, patientId),
+  }),
+
+  db.query.patientConditions.findMany({
+    where: eq(patientConditions.patientId, patientId),
+  }),
 ]);
 ```
-
-Adjust the table and field names to match your actual ORM/schema. The point is all queries run in parallel.
 
 ---
 
 ### 2.4 Build Timeline Array
 
-After all queries resolve, assemble a unified timeline. Each event in the array has a common shape:
-
 ```ts
 type TimelineEvent = {
-  id: string;
-  type: 'scan' | 'report' | 'appointment' | 'note' | 'file' | 'prescription' | 'message' | 'voice_note';
-  date: string;           // ISO 8601 timestamp
-  summary: string;        // one-line label for the card
-  record_id: string;      // id of the source record
+  id: number;
+  type: 'scan' | 'report' | 'appointment' | 'note' | 'file' |
+        'doctor_prescription' | 'ocr_prescription' | 'message' | 'voice_note';
+  date: string;       // ISO 8601
+  summary: string;
+  record_id: number;
 };
-```
 
-Build the array:
-
-```ts
 const timeline: TimelineEvent[] = [
-  ...scans.map(s => ({ id: s.id, type: 'scan', date: s.created_at, summary: s.title ?? 'Scan', record_id: s.id })),
-  ...reports.map(r => ({ id: r.id, type: 'report', date: r.created_at, summary: r.title ?? 'Report', record_id: r.id })),
-  ...appointments.map(a => ({ id: a.id, type: 'appointment', date: a.scheduled_at, summary: a.reason ?? 'Appointment', record_id: a.id })),
-  ...voiceNotes.map(v => ({ id: v.id, type: 'voice_note', date: v.created_at, summary: 'Voice transcript', record_id: v.id })),
-  ...messages.map(m => ({ id: m.id, type: 'message', date: m.sent_at, summary: m.content?.slice(0, 60) ?? 'Message', record_id: m.id })),
-  ...notes.map(n => ({ id: n.id, type: 'note', date: n.created_at, summary: n.content?.slice(0, 60) ?? 'Note', record_id: n.id })),
-  ...files.map(f => ({ id: f.id, type: 'file', date: f.created_at, summary: f.file_name, record_id: f.id })),
-  ...prescriptions.map(p => ({ id: p.id, type: 'prescription', date: p.issued_at, summary: p.title, record_id: p.id })),
+  ...allScans.map(s => ({
+    id: s.id, type: 'scan' as const,
+    date: s.uploadedAt.toISOString(),
+    summary: `${s.modality} scan — ${s.status}`,
+    record_id: s.id,
+  })),
+  ...allReports.map(r => ({
+    id: r.id, type: 'report' as const,
+    date: r.createdAt.toISOString(),
+    summary: r.diagnosis.slice(0, 60),
+    record_id: r.id,
+  })),
+  ...allAppointments.map(a => ({
+    id: a.id, type: 'appointment' as const,
+    date: a.scheduledAt.toISOString(),
+    summary: a.notes ?? `${a.type} appointment`,
+    record_id: a.id,
+  })),
+  ...allVoiceNotes.map(v => ({
+    id: v.id, type: 'voice_note' as const,
+    date: (v.createdAt ?? new Date()).toISOString(),
+    summary: v.transcription.slice(0, 60),
+    record_id: v.id,
+  })),
+  ...allMessages.map(m => ({
+    id: m.id, type: 'message' as const,
+    date: m.createdAt.toISOString(),
+    summary: m.content.slice(0, 60),
+    record_id: m.id,
+  })),
+  ...allNotes.map(n => ({
+    id: n.id, type: 'note' as const,
+    date: n.createdAt.toISOString(),
+    summary: n.content.slice(0, 60),
+    record_id: n.id,
+  })),
+  ...allFiles.map(f => ({
+    id: f.id, type: 'file' as const,
+    date: f.createdAt.toISOString(),
+    summary: f.fileName,
+    record_id: f.id,
+  })),
+  ...allDoctorPrescriptions.map(p => ({
+    id: p.id, type: 'doctor_prescription' as const,
+    date: p.createdAt.toISOString(),
+    summary: p.title,
+    record_id: p.id,
+  })),
+  ...allOcrPrescriptions.map(p => ({
+    id: p.id, type: 'ocr_prescription' as const,
+    date: p.uploadedAt.toISOString(),
+    summary: `Scanned prescription — ${p.documentType}`,
+    record_id: p.id,
+  })),
 ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 ```
 
@@ -255,68 +637,79 @@ const timeline: TimelineEvent[] = [
 
 ### 2.5 Build Alerts Array
 
-Alerts are surfaced at the top of the dossier as a warning strip. Build them from existing data:
-
 ```ts
 const alerts: string[] = [];
 
-if (allergies.length > 0) {
-  alerts.push(`Allergies: ${allergies.map(a => a.allergen).join(', ')}`);
+if (allAllergies.length > 0) {
+  alerts.push(`Allergies: ${allAllergies.map(a => a.allergen).join(', ')}`);
 }
 
-const activeConditions = conditions.filter(c => c.status === 'Active' || c.status === 'Chronic');
+const activeConditions = allConditions.filter(
+  c => c.status === 'Active' || c.status === 'Chronic'
+);
 if (activeConditions.length > 0) {
   alerts.push(`Active conditions: ${activeConditions.map(c => c.condition).join(', ')}`);
 }
-```
 
-Add more alert rules as the product requires.
+const criticalScans = allScans.filter(s => s.priority === 'critical');
+if (criticalScans.length > 0) {
+  alerts.push(`${criticalScans.length} critical scan(s) on record`);
+}
+```
 
 ---
 
 ### 2.6 Response Shape
 
 ```ts
+if (!patient) return Response.json({ error: 'Patient not found' }, { status: 404 });
+
 return Response.json({
   patient: {
-    id: patient.id,
-    name: patient.name,
-    age: patient.age,          // or compute from date_of_birth
-    gender: patient.gender,
-    blood_group: patient.blood_group,
-    phone: patient.phone,
-    medical_history: patient.medical_history,
+    id:             patient.id,
+    name:           patient.name,
+    age:            patient.age,
+    gender:         patient.gender,
+    bloodType:      patient.bloodType,    // field is bloodType, not bloodGroup
+    phone:          patient.phone,
+    medicalHistory: patient.medicalHistory,
   },
   alerts,
   timeline,
   records: {
-    scans,
-    reports,
-    appointments,
-    voice_notes: voiceNotes,
-    messages,
-    family_members: familyMembers,
-    notes,
-    files,
-    prescriptions,   // each prescription includes its items array
-    allergies,
-    conditions,
-  }
+    scans:               allScans,
+    reports:             allReports,
+    appointments:        allAppointments,
+    voiceNotes:          allVoiceNotes,
+    messages:            allMessages,
+    familyMembers:       allFamilyMembers,
+    ocrPrescriptions:    allOcrPrescriptions,
+    medications:         allMedications,
+    medicationLogs:      allMedicationLogs,
+    exerciseRoutines:    allExerciseRoutines,
+    exerciseLogs:        allExerciseLogs,
+    notes:               allNotes,
+    files:               allFiles,
+    doctorPrescriptions: allDoctorPrescriptions,
+    allergies:           allAllergies,
+    conditions:          allConditions,
+  },
 });
 ```
 
 ---
 
-### 2.7 Error Handling in the Route
+### 2.7 Error Handling
 
-- If `patient` is `null` after the query, return `404 Not Found`.
-- Wrap the entire handler body in a try/catch. On any unexpected error, return `500` with a generic message. Do not leak stack traces to the client.
+- If `patient` is `null` after the query → `404 Not Found`.
+- If auth check fails → `403 Forbidden`.
+- Wrap the entire handler in try/catch → `500` on unexpected errors. No stack traces in the response body.
 
 ---
 
 ## Phase 3 — Backend: Write Routes
 
-All of these are **new routes**. Nothing existing is modified.
+All new routes. Nothing existing is modified.
 
 ### 3.1 Notes
 
@@ -326,17 +719,17 @@ PATCH  /api/doctor/patients/[id]/notes/[noteId]
 ```
 
 **POST handler:**
-1. Auth check: must be a doctor.
-2. Parse body: `{ content: string, linked_to_type?: string, linked_to_id?: string }`.
-3. Validate: `content` must be a non-empty string. `linked_to_type` if present must be one of `scan`, `report`, `appointment`.
+1. Auth: resolve DB user; confirm `role === 'doctor'`.
+2. Parse body: `{ content: string, linkedToType?: string, linkedToId?: number }`.
+3. Validate: `content` non-empty; `linkedToType` if present must be `'scan'|'report'|'appointment'`.
 4. Insert into `patient_notes`.
-5. Return the created row as JSON with status `201`.
+5. Return created row, status `201`.
 
 **PATCH handler:**
-1. Auth check: must be the same doctor who created the note (check `doctor_id` on the row).
-2. Parse body: `{ content?: string }`. Only update fields that are present.
-3. Set `updated_at = now()`.
-4. Return the updated row as JSON with status `200`.
+1. Auth: resolve DB user; confirm the row's `doctorId === currentUser.id`.
+2. Parse body: `{ content?: string }`.
+3. Update only present fields; set `updatedAt = new Date()`.
+4. Return updated row, status `200`.
 
 ---
 
@@ -347,30 +740,35 @@ POST  /api/doctor/patients/[id]/files
 ```
 
 **POST handler:**
-1. Auth check: must be a doctor.
-2. Parse multipart form data. Extract the file binary and any metadata fields (`linked_to_type`, `linked_to_id`).
-3. Pass the file binary to the **existing upload route/function** internally. Do not duplicate upload logic. Call the existing upload handler as a function or make an internal request and get back the `file_url`.
-4. Insert a row into `patient_files` with the returned `file_url`, `file_name`, `file_type`, `file_size`, `linked_to_type`, `linked_to_id`.
-5. Return the created `patient_files` row as JSON with status `201`.
+1. Auth: resolve DB user; confirm `role === 'doctor'`.
+2. Parse multipart form. Extract file binary and optional `linkedToType`, `linkedToId`.
+3. Pass the file to the **existing `POST /api/upload` route logic**. Extract that logic
+   into a shared helper in `lib/upload.ts` rather than duplicating. Retrieve the `fileUrl`.
+4. Insert row into `patient_files` with `fileName`, `fileUrl`, `fileType`, `fileSize`,
+   `linkedToType`, `linkedToId`.
+5. Return created row, status `201`.
 
 ---
 
-### 3.3 Prescriptions
+### 3.3 Doctor Prescriptions
 
 ```
 POST   /api/doctor/patients/[id]/prescriptions
 PATCH  /api/doctor/patients/[id]/prescriptions/[prescriptionId]
 ```
 
+> These routes write to `doctor_prescriptions` + `doctor_prescription_items` (new tables),
+> **not** to the existing `prescriptions` table (which is OCR-only).
+
 **POST handler:**
-1. Auth check: must be a doctor.
+1. Auth: resolve DB user; confirm `role === 'doctor'`.
 2. Parse body:
    ```ts
    {
      title: string,
      notes?: string,
      items: Array<{
-       medicine_name: string,
+       medicineName: string,
        dosage?: string,
        frequency?: string,
        duration?: string,
@@ -378,16 +776,18 @@ PATCH  /api/doctor/patients/[id]/prescriptions/[prescriptionId]
      }>
    }
    ```
-3. Validate: `title` required, `items` must be an array (can be empty).
-4. Insert into `prescriptions`, then insert all `items` into `prescription_items` with the new `prescription_id`.
-5. Return the prescription with its items as JSON with status `201`.
+3. Validate: `title` required; `items` must be an array (can be empty).
+4. Insert into `doctor_prescriptions`; bulk-insert all items into `doctor_prescription_items`
+   with the new `doctorPrescriptionId`.
+5. Return the prescription with its `items` array, status `201`.
 
 **PATCH handler:**
-1. Auth check: must be the doctor who created the prescription.
-2. Parse body: `{ title?, notes?, items? }`. Items here is a full replacement array (delete old items, insert new ones) for simplicity.
-3. Update `prescriptions` row, set `updated_at = now()`.
-4. If `items` is in the body: delete all existing `prescription_items` for this prescription, then insert the new array.
-5. Return updated prescription with items as JSON with status `200`.
+1. Auth: confirm `row.doctorId === currentUser.id`.
+2. Parse body: `{ title?, notes?, items? }`. `items` is a full replacement array.
+3. Update `doctor_prescriptions` row; set `updatedAt = new Date()`.
+4. If `items` present: delete all existing `doctor_prescription_items` for this
+   prescription, then insert the new array.
+5. Return updated prescription with items, status `200`.
 
 ---
 
@@ -398,28 +798,22 @@ PATCH  /api/doctor/patients/[id]/prescriptions/[prescriptionId]/items/[itemId]
 ```
 
 **PATCH handler:**
-1. Auth check: must be a doctor.
-2. Parse body: `{ is_active: boolean }`.
-3. Update the `is_active` field on the specific `prescription_items` row.
-4. Set `updated_at = now()` on both the item and the parent prescription.
-5. Return the updated item as JSON with status `200`.
+1. Auth: resolve DB user; confirm `role === 'doctor'`.
+2. Parse body: `{ isActive: boolean }`.
+3. Update `isActive` on the `doctor_prescription_items` row.
+4. Set `updatedAt = new Date()` on both the item and its parent `doctor_prescriptions` row.
+5. Return updated item, status `200`.
 
 ---
 
-### 3.5 Timeline Rebuild (optional, only if using `patient_timeline_events`)
+### 3.5 Timeline Rebuild (optional)
 
 ```
 POST  /api/doctor/patients/[id]/timeline/rebuild
 ```
 
-**POST handler:**
-1. Auth check: must be a doctor.
-2. Delete all rows in `patient_timeline_events` where `patient_id = id`.
-3. Re-run the timeline assembly logic from Phase 2.4.
-4. Bulk insert the new events into `patient_timeline_events`.
-5. Return `{ ok: true }` with status `200`.
-
-Call this endpoint automatically after any write (note, file, prescription) by chaining it server-side, or trigger it manually for debugging.
+Only implement if using `patient_timeline_events`. Deletes and rebuilds all cached events
+for the patient. Return `{ ok: true }`, status `200`.
 
 ---
 
@@ -427,29 +821,21 @@ Call this endpoint automatically after any write (note, file, prescription) by c
 
 ### 4.1 New Route
 
-Add the page at:
+File: `app/doctor/patients/[id]/dossier/page.tsx`
 
-```
-/doctor/patients/[id]/dossier
-```
-
-The existing page at `/doctor/patients/[id]` must not change. The dossier is a new page at a different path.
-
-The patient selector at `/doctor/patients` can add a "Open Dossier" button/link alongside the existing patient link. Do not remove the existing link.
+The existing `app/doctor/patients/[id]/page.tsx` must not change.
 
 ---
 
 ### 4.2 Data Fetching
 
-On page load, fetch from `GET /api/doctor/patients/[id]/dossier`. While loading, show a skeleton/loading state for each section. On error (non-200), show an error banner with the status code and a retry button.
-
-Store the response in component state. The shape mirrors the API response from Phase 2.6.
+Fetch from `GET /api/doctor/patients/[id]/dossier` on page load.
+Show a skeleton matching the layout while loading.
+Store the response in component state (shape mirrors the response from Phase 2.6).
 
 ---
 
 ### 4.3 Layout Structure
-
-The page is divided into three vertical zones, top to bottom:
 
 ```
 ┌────────────────────────────────────────────┐
@@ -460,256 +846,272 @@ The page is divided into three vertical zones, top to bottom:
 │  all events · filter bar · linked cards    │
 ├────────────────────────────────────────────┤
 │  RECORDS                                   │
-│  tabbed or sectioned list of all records   │
+│  sectioned list of all record types        │
 └────────────────────────────────────────────┘
 ```
 
-All three zones are on one scrollable page. No nested tabs that hide content by default.
+All three zones on one scrollable page. No nested tabs hiding content by default.
 
 ---
 
 ### 4.4 Summary Header
 
-Display the following fields from `patient`:
-- Full name (large text)
-- Age and gender on one line
-- Blood group
-- Phone number
-- Medical history (truncated with "show more" if long)
+Display these fields using confirmed field names:
 
-Below patient info, display quick stats: total scans, total reports, total appointments, total prescriptions. These are counts derived from the `records` object.
+| UI label | Source field |
+|----------|-------------|
+| Full name | `patient.name` |
+| Age | `patient.age` |
+| Gender | `patient.gender` |
+| Blood type | `patient.bloodType` (**not** `bloodGroup`) |
+| Phone | `patient.phone` |
+| Medical history | `patient.medicalHistory` (truncate; show-more toggle if long) |
 
-Below quick stats, render the **alert strip**: a horizontally scrollable row of alert badges. Each badge is from the `alerts` array. Use a warning color (yellow/orange). If `alerts` is empty, hide the strip entirely.
+Below patient info: quick stats — total scans, reports, appointments, doctor prescriptions
+(counts from the `records` object).
 
-Below the alert strip, render **quick action buttons**:
-- `Add Note` — opens the Add Note modal (Phase 4.7)
-- `Upload File` — opens the file picker (Phase 4.8)
-- `New Prescription` — opens the New Prescription modal (Phase 4.9)
+Below quick stats: **alert strip** — horizontal scrollable row of warning badges from
+`alerts`. Hide entirely if `alerts` is empty.
+
+Below alert strip: **quick action buttons**:
+- `Add Note` → Add Note modal (Phase 4.7)
+- `Upload File` → file picker (Phase 4.8)
+- `New Prescription` → New Prescription modal (Phase 4.9)
 
 ---
 
 ### 4.5 Timeline Section
 
-**Filter bar** — a horizontal row of filter chips, one per type:
-- All (default)
-- Clinical (shows: scan, report, appointment, note, voice_note)
-- Files
-- Communication (shows: message)
-- Medications (shows: prescription)
+**Filter chips** (client-side, no API call):
 
-The selected chip filters the timeline array client-side. No API call is needed for filtering.
+| Chip | Event types shown |
+|------|------------------|
+| All | everything |
+| Clinical | `scan`, `report`, `appointment`, `note`, `voice_note` |
+| Files | `file`, `ocr_prescription` |
+| Communication | `message` |
+| Medications | `doctor_prescription` |
 
-**Event cards** — for each event in the (filtered) timeline array, render a card with:
-- Event type icon (use a different icon per type)
-- Event date formatted as a human-readable string (e.g. "14 Feb 2025")
+**Event cards** — for each event in the filtered timeline:
+- Event type icon (distinct icon per type)
+- Human-readable date (e.g. "14 Feb 2025")
 - Summary text
-- A "View" link/button that scrolls the page to the corresponding record in the Records section below (use an `id` anchor on each record card)
+- "View" button scrolling to `#{type}-{record_id}` anchor in the Records section
 
 ---
 
 ### 4.6 Records Section
 
-Divide records into sub-sections. Render each sub-section sequentially, separated by a heading. Each sub-section has a heading and a list of cards.
-
-Sub-sections and what to show on each card:
+Each card must have `id="{type}-{record_id}"` for scroll-to targeting.
+Each sub-section shows an empty state if its list is empty (see Phase 4.10).
 
 **Scans**
-- Scan title or "Untitled Scan"
-- Date
-- Link to existing scan detail page (use the existing route, do not rebuild it)
+- Modality + status badge
+- `uploadedAt` date
+- Link to `/doctor/scan/[id]` (existing page — do not rebuild)
 
 **Reports**
-- Report title
-- Date
-- Link to existing report detail page
-
-**Notes** (new)
-- Note content (truncated if long, with expand toggle)
-- Author (doctor name)
-- Date
-- "Edit" button (opens Edit Note modal — Phase 4.7)
-
-**Voice Transcripts**
-- Date
-- Transcript text (truncated, with expand toggle)
-- Audio playback if a URL is available
-
-**Files** (new)
-- File name
-- File type badge
-- File size (human-readable, e.g. "1.2 MB")
-- Download link (opens `file_url` in a new tab)
+- Diagnosis (truncated) + severity badge + date
+- Link to `/doctor/reports/[id]` (existing page)
 
 **Appointments**
-- Date and time
-- Reason/notes
-- Status badge (e.g. Scheduled, Completed, Cancelled)
-- Link to existing appointment detail if one exists
+- Date/time, type, status badge (`scheduled`/`confirmed`/`completed`/`cancelled`)
+- Notes (truncated)
 
-**Messages**
-- Message content (truncated)
-- Sender name and date
-- Link to existing conversation thread
+**Voice Transcripts** (fetched via scan join)
+- Date (`createdAt`)
+- `transcription` text (truncated, expand toggle)
+- Audio playback if `audioUrl` is present (`voiceNotes.audioUrl` is nullable)
 
-**Prescriptions** (new)
-- Prescription title
-- Issue date
-- Table of medicine items: medicine name, dosage, frequency, duration, directions, active/inactive toggle
-- "Edit" button (opens Edit Prescription modal — Phase 4.9)
+**Messages** (fetched via conversation join)
+- `content` (truncated) + `senderId` + date
+- Link to `/doctor/messages`
 
-**Allergies** (new)
-- Allergen name
-- Severity badge
-- Notes
+**Notes** (new — `patientNotes`)
+- `content` (truncated, expand toggle)
+- `doctorId` (resolve name if needed)
+- Date
+- "Edit" button → Edit Note modal (Phase 4.7)
 
-**Conditions** (new)
-- Condition name
-- Status badge
-- Diagnosed date
-- Notes
+**Files** (new — `patientFiles`)
+- `fileName`
+- File type badge (from `fileType`)
+- File size (human-readable from `fileSize` bytes)
+- Download link opening `fileUrl` in new tab
 
-**Family Members**
-- Name and relationship
-- Any other fields already stored
+**OCR Prescription Documents** (existing `prescriptions`)
+- `documentType` badge
+- `uploadedAt` date
+- OCR confidence (`ocrConfidence`) if available
+- Button/link to view `imageUrl`
+- `cleanedText` preview if present
 
-Each card must have an `id` attribute equal to `{type}-{record_id}` so the timeline "View" links can scroll to it. Example: `id="scan-abc123"`.
+**Doctor Prescriptions** (new — `doctorPrescriptions`)
+- `title` + date
+- Table of `items[]`: `medicineName`, `dosage`, `frequency`, `duration`, `directions`,
+  active/inactive toggle
+- "Edit" button → Edit Prescription modal (Phase 4.9)
+
+**Medications** (existing `medications`)
+- `drugName`, `dosage`, `form`, `frequency`
+- `isActive` badge + `addedBy` badge (`ocr`/`doctor`/`patient`)
+- Link to `/doctor/prescriptions` for full management
+
+**Allergies** (new — `patientAllergies`)
+- `allergen` name + severity badge + `notes`
+
+**Conditions** (new — `patientConditions`)
+- `condition` name + status badge + `diagnosedAt` + `notes`
+
+**Exercise Routines** (existing `exerciseRoutines`)
+- `name`, `type`, `frequency`, `isActive` badge, `addedBy` badge
+
+**Family Members** (existing `familyMembers`)
+- `name` and `relation` (only these two fields exist on the table)
 
 ---
 
 ### 4.7 Add / Edit Note Modal
 
-Trigger: `Add Note` button in summary header, or `Edit` button on a note card.
+Trigger: `Add Note` button or `Edit` on a note card.
 
-Modal fields:
+Fields:
 - `Content` — textarea, required
-- `Link to record` — optional dropdown: "None", "Scan", "Report", "Appointment". If a type is chosen, show a second dropdown listing the records of that type for this patient. The user picks one.
+- `Link to record` — optional: "None", "Scan", "Report", "Appointment". If a type is
+  chosen, show a second dropdown listing this patient's records of that type.
 
 On submit:
-- If adding: call `POST /api/doctor/patients/[id]/notes` with `{ content, linked_to_type, linked_to_id }`.
-- If editing: call `PATCH /api/doctor/patients/[id]/notes/[noteId]` with `{ content }`.
-- On success: close modal. Append the new note (or replace the existing one) in the notes list in component state without re-fetching the full dossier.
-- On error: show an inline error message inside the modal. Do not close the modal.
+- Adding → `POST /api/doctor/patients/[id]/notes` with `{ content, linkedToType, linkedToId }`.
+- Editing → `PATCH /api/doctor/patients/[id]/notes/[noteId]` with `{ content }`.
+- Success: close modal; update notes list in state (no full re-fetch).
+- Error: inline error inside modal; do not close.
 
 ---
 
 ### 4.8 File Upload Flow
 
-Trigger: `Upload File` button in summary header.
+Trigger: `Upload File` button.
 
-UI:
-- File picker (accept any file type)
-- Optional: dropdown to link to a scan/report/appointment (same pattern as the note modal)
-- Upload button
+UI: file picker (all types) + optional link-to-record dropdown + upload button + progress indicator.
 
-On upload:
-- POST multipart form to `POST /api/doctor/patients/[id]/files`.
-- Show upload progress if the browser supports it.
-- On success: append the new file card to the files list in component state.
-- On error: show inline error.
+On upload: `POST /api/doctor/patients/[id]/files` (multipart).
+Success: append new file card to files list in state.
+Error: show inline error.
 
 ---
 
 ### 4.9 New / Edit Prescription Modal
 
-Trigger: `New Prescription` button in summary header, or `Edit` on a prescription card.
+Trigger: `New Prescription` button or `Edit` on a doctor prescription card.
 
-Modal fields:
-- `Title` — text input, required
+Fields:
+- `Title` — text, required
 - `Notes` — textarea, optional
-- **Medicine items** — a dynamic list of rows. Each row has:
-  - Medicine name (text input, required)
-  - Dosage (text input)
-  - Frequency (text input)
-  - Duration (text input)
-  - Directions (text input)
-  - Remove row button
-- `Add medicine` button — appends a new empty row
+- Dynamic medicine item rows: `medicineName` (required), `dosage`, `frequency`,
+  `duration`, `directions`, remove-row button
+- `Add medicine` button appends a new empty row
 
 On submit:
-- If new: call `POST /api/doctor/patients/[id]/prescriptions` with `{ title, notes, items }`.
-- If editing: call `PATCH /api/doctor/patients/[id]/prescriptions/[prescriptionId]` with `{ title, notes, items }`.
-- On success: close modal. Update prescriptions list in state.
-- On error: show inline error inside modal.
+- New → `POST /api/doctor/patients/[id]/prescriptions`
+- Editing → `PATCH /api/doctor/patients/[id]/prescriptions/[prescriptionId]`
+- Success: close modal; update prescriptions list in state.
+- Error: inline error; do not close modal.
 
-**Active/Inactive toggle on prescription item cards** (outside the modal, inline in the record card):
-- Each medicine row in the rendered prescription card has a toggle switch for `is_active`.
-- On toggle: call `PATCH /api/doctor/patients/[id]/prescriptions/[prescriptionId]/items/[itemId]` with `{ is_active: newValue }`.
-- On success: update the item in state.
-- On error: revert the toggle and show a toast error.
+**Active/inactive toggle** (inline on prescription item cards):
+- On toggle → `PATCH .../prescriptions/[prescriptionId]/items/[itemId]` with `{ isActive }`.
+- Success: update item in state.
+- Error: revert toggle; show toast error.
 
 ---
 
 ### 4.10 Empty States
 
-Each sub-section in the Records zone must show an empty state message when its list is empty. Example: "No notes yet. Click Add Note to add one." Do not leave blank space or render nothing.
+Each sub-section shows a contextual message when its list is empty. Do not leave blank space.
+
+Examples:
+- Scans: "No scans uploaded yet."
+- Notes: "No notes yet. Click Add Note to add one."
+- Allergies: "No allergies on record."
+- Family Members: "No family members on record."
 
 ---
 
 ### 4.11 Loading and Error States
 
-- On initial page load: show a full-page skeleton loader that mirrors the layout (header skeleton, timeline skeleton, records skeleton).
-- On write action failure: show a toast or inline error. Do not navigate away from the page.
-- If the dossier fetch returns 403: show "You do not have access to this patient."
-- If the dossier fetch returns 404: show "Patient not found."
-- If the dossier fetch returns 500: show "Something went wrong. Try again." with a retry button that re-fetches.
+- Initial load: full-page skeleton mirroring the layout.
+- Write failure: toast or inline error; do not navigate away.
+- `403`: "You do not have access to this patient."
+- `404`: "Patient not found."
+- `500`: "Something went wrong." + retry button.
 
 ---
 
 ## Phase 5 — Wire the Patient Selector
 
-The existing `/doctor/patients` page shows a list of patients. After this milestone, each patient entry should have two actions:
-- Existing link (keep it exactly as is)
-- New `Open Dossier` link/button pointing to `/doctor/patients/[id]/dossier`
-
-Do not change the default click behavior of the patient row if it already navigates somewhere.
+The existing `/doctor/patients` page fetches from `GET /api/users/patients` (confirmed).
+Add an `Open Dossier` link/button alongside the existing patient entry, pointing to
+`/doctor/patients/[id]/dossier`. Do not change the existing link or row click behavior.
 
 ---
 
 ## Phase 6 — Acceptance Checklist
 
-Go through this list before marking the implementation complete.
-
 ### Existing functionality
 - [ ] All existing routes return the same responses as before
-- [ ] Existing `/doctor/patients/[id]` page loads and shows the same content as before
-- [ ] Existing scan, report, appointment, message, and voice note pages are unaffected
-- [ ] Patient selector at `/doctor/patients` still works and links to the existing patient page
+- [ ] `GET /api/doctor/patients/[id]` unchanged
+- [ ] `POST /api/ocr/save` still writes to the existing `prescriptions` table correctly
+- [ ] `/doctor/prescriptions` page still reads `medications` and `prescriptions` correctly
+- [ ] Existing scan, report, appointment, message, and voice note pages unaffected
+- [ ] `/doctor/patients` list still works with both the existing link and the new dossier link
 
 ### Read-only dossier (Phase 1–2)
-- [ ] `GET /api/doctor/patients/[id]/dossier` returns a 200 with the full payload
-- [ ] Non-doctor users receive 403 from the dossier endpoint
-- [ ] Doctors cannot access dossiers of patients they do not have access to (403)
-- [ ] Patients with no records in a category return empty arrays (not errors) for that category
+- [ ] `GET /api/doctor/patients/[id]/dossier` returns 200 with full payload
+- [ ] Non-doctor users receive 403
+- [ ] Doctors cannot access dossiers for patients outside their hospital links (403)
+- [ ] Empty arrays returned (not errors) for categories with no records
+- [ ] `voiceNotes` correctly fetched via scan join (not a direct patient FK)
+- [ ] `messages` correctly fetched via conversation join (not a direct patient FK)
 - [ ] Timeline is sorted newest-first
+- [ ] `patient.bloodType` used in response and UI (not `bloodGroup`)
 
 ### Dossier page (Phase 4)
 - [ ] Page loads at `/doctor/patients/[id]/dossier`
 - [ ] All sections render without hardcoded placeholder data
-- [ ] Alert strip is hidden when there are no alerts
-- [ ] Timeline filter chips filter the timeline client-side correctly
+- [ ] Alert strip hidden when `alerts` is empty
+- [ ] Timeline filter chips filter client-side correctly
 - [ ] Timeline "View" links scroll to the correct record card
 
-### Write actions (Phase 3–4.7/4.8/4.9)
-- [ ] Doctor can add a note and it appears in the notes section without page reload
-- [ ] Doctor can edit a note and the updated content appears
-- [ ] Doctor can upload a file and it appears in the files section
-- [ ] Doctor can create a prescription with medicine items
-- [ ] Doctor can edit a prescription (title, notes, items)
+### Write actions (Phase 3–4.9)
+- [ ] Doctor can add a note; appears without page reload
+- [ ] Doctor can edit a note; updated content appears
+- [ ] Doctor can upload a file; appears in files section
+- [ ] Doctor can create a doctor prescription with medicine items
+- [ ] Doctor can edit a doctor prescription
 - [ ] Doctor can toggle a medicine item active/inactive
-- [ ] All write actions fail gracefully with inline error messages
+- [ ] All write actions fail gracefully with inline errors
+- [ ] Existing `prescriptions` (OCR) table is not written to by any new route
 
 ### Edge cases
-- [ ] A patient with many records (20+ of each type) does not cause performance issues on the dossier page
-- [ ] A patient with zero records in every category shows the dossier with empty states, not errors
-- [ ] File upload of a large file (>10MB) handles timeout or error gracefully
+- [ ] Patient with 20+ records of each type has no performance issues
+- [ ] Patient with zero records in every category shows dossier with empty states
+- [ ] File upload >10MB handles timeout or error gracefully
+- [ ] Patient with no scans returns empty `voiceNotes` without error (inArray guard)
+- [ ] Patient with no conversations returns empty `messages` without error (inArray guard)
 
 ---
 
-## Summary of New Files/Routes
+## Summary of New Files / Routes
 
 | Type | Path |
 |------|------|
-| Migration | `patient_notes`, `patient_files`, `prescriptions`, `prescription_items`, `patient_allergies`, `patient_conditions`, `patient_timeline_events` (optional) |
+| Migration | `patient_notes` |
+| Migration | `patient_files` |
+| Migration | `doctor_prescriptions` |
+| Migration | `doctor_prescription_items` |
+| Migration | `patient_allergies` |
+| Migration | `patient_conditions` |
+| Migration | `patient_timeline_events` (optional) |
+| Schema update | `lib/db/schema.ts` — Drizzle table + relations definitions for all above |
 | API route (read) | `GET /api/doctor/patients/[id]/dossier` |
 | API route (write) | `POST /api/doctor/patients/[id]/notes` |
 | API route (write) | `PATCH /api/doctor/patients/[id]/notes/[noteId]` |
@@ -718,6 +1120,22 @@ Go through this list before marking the implementation complete.
 | API route (write) | `PATCH /api/doctor/patients/[id]/prescriptions/[prescriptionId]` |
 | API route (write) | `PATCH /api/doctor/patients/[id]/prescriptions/[prescriptionId]/items/[itemId]` |
 | API route (write) | `POST /api/doctor/patients/[id]/timeline/rebuild` (optional) |
-| Frontend page | `/doctor/patients/[id]/dossier` |
+| Frontend page | `app/doctor/patients/[id]/dossier/page.tsx` |
 
 Nothing in this list modifies any existing file, route, or table.
+
+---
+
+## Key Corrections from Schema Review
+
+| Earlier assumption | Actual schema fact |
+|---|---|
+| `patients` / `doctors` tables with UUID PKs | Single `users` table, `serial` integer PKs |
+| `prescriptions` = structured doctor prescriptions | `prescriptions` = OCR image documents only; new `doctor_prescriptions` table needed |
+| `prescription_items` table | Does not exist; drug items live in `medications`; new `doctor_prescription_items` needed |
+| `voice_notes.patientId` | No `patientId` column; linked only via `scanId` → must join through scans |
+| `messages.patientId` | No `patientId` column; linked only via `conversationId` → must join through conversations |
+| `users.bloodGroup` | Field is `bloodType` (`blood_type` in DB) |
+| `users.age` computed from `dateOfBirth` | `age` is a direct `integer` column; no computation needed |
+| UUID primary keys throughout | All PKs are `serial` integers |
+| `familyMembers` has many fields | Only three columns: `id`, `patientId`, `relation`, `name` |

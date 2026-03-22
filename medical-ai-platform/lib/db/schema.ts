@@ -170,6 +170,100 @@ export const familyMembers = pgTable("family_members", {
 });
 
 // =====================================================
+// 10. PATIENT NOTES (Doctor-authored)
+// =====================================================
+export const patientNotes = pgTable("patient_notes", {
+    id: serial("id").primaryKey(),
+    patientId: integer("patient_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    doctorId: integer("doctor_id").notNull().references(() => users.id),
+    content: text("content").notNull(),
+    linkedToType: text("linked_to_type"),
+    linkedToId: integer("linked_to_id"),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().$defaultFn(() => new Date()),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull().$defaultFn(() => new Date()),
+}, (table) => ({
+    idxPatientNotesPatientId: index("idx_patient_notes_patient_id").on(table.patientId),
+    idxPatientNotesDoctorId: index("idx_patient_notes_doctor_id").on(table.doctorId),
+}));
+
+// =====================================================
+// 11. PATIENT FILES (Doctor uploads)
+// =====================================================
+export const patientFiles = pgTable("patient_files", {
+    id: serial("id").primaryKey(),
+    patientId: integer("patient_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    doctorId: integer("doctor_id").notNull().references(() => users.id),
+    fileName: text("file_name").notNull(),
+    fileUrl: text("file_url").notNull(),
+    fileType: text("file_type"),
+    fileSize: integer("file_size"),
+    linkedToType: text("linked_to_type"),
+    linkedToId: integer("linked_to_id"),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().$defaultFn(() => new Date()),
+}, (table) => ({
+    idxPatientFilesPatientId: index("idx_patient_files_patient_id").on(table.patientId),
+}));
+
+// =====================================================
+// 12. DOCTOR PRESCRIPTIONS (Structured, doctor-authored)
+// =====================================================
+export const doctorPrescriptions = pgTable("doctor_prescriptions", {
+    id: serial("id").primaryKey(),
+    patientId: integer("patient_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    doctorId: integer("doctor_id").notNull().references(() => users.id),
+    title: text("title").notNull(),
+    notes: text("notes"),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().$defaultFn(() => new Date()),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull().$defaultFn(() => new Date()),
+}, (table) => ({
+    idxDoctorPrescriptionsPatientId: index("idx_doctor_prescriptions_patient_id").on(table.patientId),
+}));
+
+export const doctorPrescriptionItems = pgTable("doctor_prescription_items", {
+    id: serial("id").primaryKey(),
+    doctorPrescriptionId: integer("doctor_prescription_id").notNull().references(() => doctorPrescriptions.id, { onDelete: "cascade" }),
+    medicineName: text("medicine_name").notNull(),
+    dosage: text("dosage"),
+    frequency: text("frequency"),
+    duration: text("duration"),
+    directions: text("directions"),
+    isActive: boolean("is_active").notNull().default(true),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().$defaultFn(() => new Date()),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull().$defaultFn(() => new Date()),
+}, (table) => ({
+    idxDoctorPrescriptionItemsPrescriptionId: index("idx_dpi_prescription_id").on(table.doctorPrescriptionId),
+}));
+
+// =====================================================
+// 13. PATIENT ALLERGIES
+// =====================================================
+export const patientAllergies = pgTable("patient_allergies", {
+    id: serial("id").primaryKey(),
+    patientId: integer("patient_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    allergen: text("allergen").notNull(),
+    severity: text("severity"),
+    notes: text("notes"),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().$defaultFn(() => new Date()),
+}, (table) => ({
+    idxPatientAllergiesPatientId: index("idx_patient_allergies_patient_id").on(table.patientId),
+}));
+
+// =====================================================
+// 14. PATIENT CONDITIONS
+// =====================================================
+export const patientConditions = pgTable("patient_conditions", {
+    id: serial("id").primaryKey(),
+    patientId: integer("patient_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    condition: text("condition").notNull(),
+    diagnosedAt: text("diagnosed_at"),
+    status: text("status"),
+    notes: text("notes"),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().$defaultFn(() => new Date()),
+}, (table) => ({
+    idxPatientConditionsPatientId: index("idx_patient_conditions_patient_id").on(table.patientId),
+}));
+
+// =====================================================
 // RELATIONS
 // =====================================================
 export const doctorProfilesRelations = relations(doctorProfiles, ({ one }) => ({
@@ -230,6 +324,14 @@ export const usersRelations = relations(users, ({ one, many }) => ({
     notifications: many(notifications),
     followUps: many(followUps),
     emailConnections: many(emailConnections),
+    authoredPatientNotes: many(patientNotes, { relationName: "doctorPatientNotes" }),
+    patientNotes: many(patientNotes, { relationName: "patientPatientNotes" }),
+    uploadedPatientFiles: many(patientFiles, { relationName: "doctorPatientFiles" }),
+    patientFiles: many(patientFiles, { relationName: "patientPatientFiles" }),
+    doctorPrescriptionsAsDoctor: many(doctorPrescriptions, { relationName: "doctorPrescriptionsAsDoctor" }),
+    doctorPrescriptionsAsPatient: many(doctorPrescriptions, { relationName: "doctorPrescriptionsAsPatient" }),
+    allergies: many(patientAllergies),
+    conditions: many(patientConditions),
 }));
 
 export const scansRelations = relations(scans, ({ one, many }) => ({
@@ -328,6 +430,61 @@ export const medicationsRelations = relations(medications, ({ one, many }) => ({
     patient: one(users, { fields: [medications.patientId], references: [users.id] }),
     prescription: one(prescriptions, { fields: [medications.prescriptionId], references: [prescriptions.id] }),
     logs: many(medicationLogs),
+}));
+
+export const patientNotesRelations = relations(patientNotes, ({ one }) => ({
+    patient: one(users, {
+        fields: [patientNotes.patientId],
+        references: [users.id],
+        relationName: "patientPatientNotes",
+    }),
+    doctor: one(users, {
+        fields: [patientNotes.doctorId],
+        references: [users.id],
+        relationName: "doctorPatientNotes",
+    }),
+}));
+
+export const patientFilesRelations = relations(patientFiles, ({ one }) => ({
+    patient: one(users, {
+        fields: [patientFiles.patientId],
+        references: [users.id],
+        relationName: "patientPatientFiles",
+    }),
+    doctor: one(users, {
+        fields: [patientFiles.doctorId],
+        references: [users.id],
+        relationName: "doctorPatientFiles",
+    }),
+}));
+
+export const doctorPrescriptionsRelations = relations(doctorPrescriptions, ({ one, many }) => ({
+    patient: one(users, {
+        fields: [doctorPrescriptions.patientId],
+        references: [users.id],
+        relationName: "doctorPrescriptionsAsPatient",
+    }),
+    doctor: one(users, {
+        fields: [doctorPrescriptions.doctorId],
+        references: [users.id],
+        relationName: "doctorPrescriptionsAsDoctor",
+    }),
+    items: many(doctorPrescriptionItems),
+}));
+
+export const doctorPrescriptionItemsRelations = relations(doctorPrescriptionItems, ({ one }) => ({
+    prescription: one(doctorPrescriptions, {
+        fields: [doctorPrescriptionItems.doctorPrescriptionId],
+        references: [doctorPrescriptions.id],
+    }),
+}));
+
+export const patientAllergiesRelations = relations(patientAllergies, ({ one }) => ({
+    patient: one(users, { fields: [patientAllergies.patientId], references: [users.id] }),
+}));
+
+export const patientConditionsRelations = relations(patientConditions, ({ one }) => ({
+    patient: one(users, { fields: [patientConditions.patientId], references: [users.id] }),
 }));
 
 // =====================================================
