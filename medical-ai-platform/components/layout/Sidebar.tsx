@@ -24,6 +24,7 @@ import {
     Settings,
     FlaskConical,
     UserCircle,
+    Send,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -38,6 +39,7 @@ const doctorNav: NavItem[] = [
     { label: "Dashboard",        href: "/doctor",                 icon: LayoutDashboard },
     { label: "Case Inbox",       href: "/doctor/cases",           icon: Inbox },
     { label: "Scan Queue",       href: "/doctor/queue",           icon: Scan },
+    { label: "Deliveries",       href: "/doctor/deliveries",      icon: Send },
     { label: "Patients",         href: "/doctor/patients",        icon: Users },
     { label: "Reports",          href: "/doctor/reports",         icon: FileText },
     { label: "Prescriptions",    href: "/doctor/prescriptions",   icon: ClipboardList },

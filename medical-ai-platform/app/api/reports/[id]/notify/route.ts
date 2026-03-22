@@ -72,106 +72,192 @@ export async function POST(
             }).where(eq(reports.id, reportId));
         }
 
-        // 5.5 Optional: Upload to Google Drive
-        let driveUrl = "";
-        try {
-            const { readFile } = await import("fs/promises");
-            const path = await import("path");
-            const pdfPath = path.join(process.cwd(), "public", `generated-reports/report-${reportId}.pdf`);
-            const pdfBuffer = await readFile(pdfPath);
-
-            const { uploadToGoogleDrive } = await import("@/lib/integrations/googleDrive");
-            const driveRes = await uploadToGoogleDrive(
-                user.id,
-                `VaidyaVision-Report-${reportId}.pdf`,
-                pdfBuffer,
-                "application/pdf"
-            );
-            if (driveRes.success && driveRes.webViewLink) {
-                driveUrl = driveRes.webViewLink;
-                console.log(`[Google Drive] Uploaded report ${reportId}: ${driveUrl}`);
-            } else {
-                console.error("[Google Drive] Upload failed:", driveRes.error);
-            }
-        } catch (err) {
-            console.error("[Google Drive] Execution Error:", err);
-        }
-
-        // 6. Build payload for n8n
+        // 5.5 Construct Internal URLs
         const appDomain = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-        // Convert local PDF path to absolute URL
         const absolutePdfUrl = pdfUrl.startsWith("http") ? pdfUrl : `${appDomain}${pdfUrl}`;
         const localReportUrl = `${appDomain}/patient/reports/${reportId}`;
 
-        const payload = {
-            reportId: report.id,
-            scanId: report.scanId,
-            patientName: report.patient?.name || "Patient",
-            patientPhone: report.patient?.phone || "",
-            patientEmail: report.patient?.email || "",
-            doctorName: report.doctor?.name || "Doctor",
-            doctorEmail: report.doctor?.email || "",
-            hospitalName: report.hospitalTemplate?.name || "Hospital",
-            diagnosis: report.diagnosis || "No diagnosis provided",
-            findings: report.findings || "No findings recorded",
-            recommendations: report.recommendations || "No recommendations",
-            severity: report.severity || "medium",
-            symptoms: report.scan?.symptoms || "",
-            reportText: [
-                report.diagnosis ? `Diagnosis: ${report.diagnosis}` : "",
-                report.findings ? `Findings: ${report.findings}` : "",
-                report.recommendations ? `Recommendations: ${report.recommendations}` : ""
-            ].filter(Boolean).join("\n\n") || "No report text available.",
-            // Swap out the local URLs for the Google Drive link if upload succeeded
-            reportUrl: driveUrl || localReportUrl,
-            pdfUrl: driveUrl || absolutePdfUrl,
-            releasedAt: report.releasedAt?.toISOString() || now.toISOString(),
-            nextAppointmentAt: null,
-        };
+        // 6. Generate Summary via Groq natively
+        let summary = "Your medical report is now available for review.";
+        try {
+            const Groq = (await import("groq-sdk")).default;
+            if (process.env.GROQ_API_KEY) {
+                const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+                
+                const reportTextChunk = [
+                    report.diagnosis ? `Diagnosis: ${report.diagnosis}` : "",
+                    report.findings ? `Findings: ${report.findings}` : "",
+                    report.recommendations ? `Recommendations: ${report.recommendations}` : ""
+                ].filter(Boolean).join("\n\n");
 
-        // 7. Send to n8n webhook
-        const webhookUrl = process.env.N8N_REPORT_READY_WEBHOOK_URL;
-        const webhookSecret = process.env.N8N_WEBHOOK_SECRET;
-
-        let deliveryStatus: "sent" | "failed" = "failed";
-        let deliveryDetail = "";
-
-        if (!webhookUrl) {
-            deliveryDetail = "n8n Webhook URL not configured";
-        } else {
-            try {
-                const headers: Record<string, string> = {
-                    "Content-Type": "application/json",
-                };
-                if (webhookSecret) {
-                    headers["x-api-key"] = webhookSecret;
-                }
-
-                const n8nRes = await fetch(webhookUrl, {
-                    method: "POST",
-                    headers,
-                    body: JSON.stringify(payload),
+                const chatCompletion = await groq.chat.completions.create({
+                    messages: [
+                        {
+                            role: "system",
+                            content: "You are a cautious medical assistant generating summaries for patients. STRICT RULES: Only use the provided report text. Do NOT add new information. Do NOT guess or infer. Do NOT provide diagnosis or treatment advice. Avoid alarming language. Keep tone calm, neutral, and easy to understand. If data is unclear, say so instead of guessing. OUTPUT FORMAT: 2 to 4 short sentences. Simple language (non-technical). Highlight only key observations. No bullet points. No medical jargon unless unavoidable.",
+                        },
+                        {
+                            role: "user",
+                            content: `Summarize this medical report safely:\n\n${reportTextChunk}`,
+                        },
+                    ],
+                    model: "llama-3.1-8b-instant",
                 });
-
-                if (n8nRes.ok) {
-                    deliveryStatus = "sent";
-                    deliveryDetail = "Dispatched via n8n";
-                } else {
-                    const errText = await n8nRes.text();
-                    deliveryDetail = `n8n Error: ${n8nRes.status} ${errText}`;
-                }
-            } catch (err) {
-                deliveryDetail = `n8n Request Failed: ${String(err)}`;
+                summary = chatCompletion.choices[0]?.message?.content || summary;
+            } else {
+                console.warn("[Notify] GROQ_API_KEY missing - skipping AI summary generation.");
             }
+        } catch (error) {
+            console.error("[Groq] Summary generation failed:", error);
         }
 
-        // 8. Update delivery status in DB
-        await db.update(reports).set({ deliveryStatus }).where(eq(reports.id, reportId));
+        // 7. Dispatch Email
+        let emailStatus: "sent" | "failed" = "failed";
+        let emailError = "";
+        let emailMessageId: string | null = null;
+        try {
+            const { sendViaGmail } = await import("@/lib/integrations/sendViaGmail");
+            const doctorName = report.doctor?.name || "Your Doctor";
+            const patientName = report.patient?.name || "Patient";
+            
+            const html = `
+                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2>Medical Report Released</h2>
+                    <p>Dear ${patientName},</p>
+                    <p>Dr. ${doctorName} has released your medical report. You can view the details securely on the VaidyaVision portal.</p>
+                    <div style="background: #f3f4f6; padding: 16px; border-radius: 8px; margin: 20px 0;">
+                        <strong>Report Summary:</strong><br/>
+                        ${summary}
+                    </div>
+                    <a href="${localReportUrl}" style="display: inline-block; background: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px;">View Full Report</a>
+                </div>
+            `;
+            
+            const emailResult = await sendViaGmail({
+                doctorUserId: user.id,
+                to: report.patient.email,
+                subject: "Your Medical Report is Ready",
+                htmlBody: html,
+            });
+            if (emailResult.success) {
+                emailStatus = "sent";
+                emailMessageId = emailResult.messageId || null;
+            } else {
+                emailError = emailResult.error || "Unknown Gmail error";
+            }
+        } catch (error) {
+            emailError = String(error);
+        }
+
+        // Insert Email Delivery Job
+        const { reportDeliveries, conversations } = await import("@/lib/db/schema");
+        await db.insert(reportDeliveries).values({
+            reportId: report.id,
+            channel: "email",
+            provider: "gmail",
+            status: emailStatus,
+            providerMessageSid: emailMessageId,
+            externalId: emailMessageId,
+            sentAt: emailStatus === "sent" ? new Date() : null,
+            errorMessage: emailError || null,
+        });
+
+        // 8. Dispatch Twilio WhatsApp
+        let waStatus: "sent" | "failed" = "failed";
+        let waError = "";
+        try {
+            const twilioPhone = report.patient?.phone;
+            if (twilioPhone && process.env.TWILIO_ACCOUNT_SID) {
+                const twilio = (await import("twilio")).default;
+                const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+                
+                // Check if in session
+                const existingConv = await db.query.conversations.findFirst({
+                    where: eq(conversations.patientId, report.patientId)
+                });
+                
+                const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+                const isInSession = existingConv?.lastMessageAt && (now.getTime() - existingConv.lastMessageAt.getTime() < ONE_DAY_MS);
+
+                const fromNumber = process.env.TWILIO_FROM_NUMBER || "+12602869523";
+                const toNumber = twilioPhone.startsWith("+") ? twilioPhone : "+" + twilioPhone;
+                
+                let messageConfig: any = {
+                    from: fromNumber,
+                    to: toNumber,
+                    statusCallback: `${appDomain}/api/webhooks/twilio/status`,
+                };
+
+                const { randomBytes } = await import("crypto");
+                const intentToken = randomBytes(6).toString("hex").toUpperCase();
+                
+                const expiresAt = new Date();
+                expiresAt.setDate(expiresAt.getDate() + 2);
+
+                if (isInSession) {
+                    messageConfig.body = `Hello ${report.patient?.name},\n\nDr. ${report.doctor?.name} has released your medical report.\n\nSummary:\n${summary}\n\nView securely here: ${localReportUrl}\n\nReply with "BOOK ${intentToken}" to schedule a follow-up consultation.`;
+                } else {
+                    // SMS does not require approved templates, generic text is fine
+                    messageConfig.body = `Your medical report from VaidyaVision is ready. View it here: ${localReportUrl} . To book a follow-up, reply with "BOOK ${intentToken}"`;
+                }
+
+                const msg = await client.messages.create(messageConfig);
+                waStatus = "sent";
+                
+                // Insert WA Delivery Job
+                const { reportDeliveries: rdSchema, appointmentIntents: aiSchema } = await import("@/lib/db/schema");
+                const [delivery] = await db.insert(rdSchema).values({
+                    reportId: report.id,
+                    channel: "whatsapp",
+                    provider: "twilio_whatsapp",
+                    status: waStatus,
+                    externalId: msg.sid,
+                    providerMessageSid: msg.sid,
+                    sentAt: new Date(),
+                    errorMessage: null,
+                }).returning({ id: rdSchema.id });
+                
+                // Persist the explicit Appointment Intent Token
+                await db.insert(aiSchema).values({
+                    patientId: report.patientId,
+                    doctorId: report.doctorId,
+                    reportId: report.id,
+                    deliveryId: delivery.id,
+                    intentToken: intentToken,
+                    expiresAt: expiresAt,
+                    status: "pending"
+                });
+                
+            } else {
+                waError = "Missing Patient Phone or Twilio SID";
+                await db.insert(reportDeliveries).values({
+                    reportId: report.id,
+                    channel: "whatsapp",
+                    provider: "twilio_whatsapp",
+                    status: "failed",
+                    errorMessage: waError,
+                });
+            }
+        } catch (error) {
+            waError = String(error);
+            await db.insert(reportDeliveries).values({
+                reportId: report.id,
+                channel: "sms",
+                provider: "twilio_sms",
+                status: "failed",
+                errorMessage: waError,
+            });
+        }
+
+        // 9. Update master delivery status in DB (legacy field fallback)
+        const finalStatus = emailStatus === "sent" || waStatus === "sent" ? "sent" : "failed";
+        await db.update(reports).set({ deliveryStatus: finalStatus }).where(eq(reports.id, reportId));
 
         return NextResponse.json({
             notified: true,
-            deliveryStatus,
-            deliveryDetail,
+            deliveryStatus: finalStatus,
+            emailStatus,
+            waStatus,
             pdfUrl,
             releasedAt: report.releasedAt || now,
         });

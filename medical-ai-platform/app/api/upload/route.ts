@@ -67,8 +67,9 @@ export async function POST(req: NextRequest) {
             .insert(scans)
             .values({
                 patientId: targetPatientId,
-                imageUrl: `/uploads/${filename}`,
-                modality: modality as "brain" | "lung" | "skin" | "ecg",
+                imageUrl: modality === "audio" ? "/heatmaps/pending_audio.png" : `/uploads/${filename}`,
+                audioUrl: modality === "audio" ? `/uploads/${filename}` : null,
+                modality: modality as "brain" | "lung" | "skin" | "ecg" | "audio",
                 status: "processing",
                 symptoms: symptoms || null,
                 originalFilename: file.name,
@@ -99,6 +100,15 @@ export async function POST(req: NextRequest) {
                     expertUsed: mlData.modality || modality,
                     triageScore: mlData.triage_score ?? null,
                 };
+                
+                if (mlData.base_url) {
+                    if (modality === "audio") {
+                        updateData.spectrogramUrl = mlData.base_url;
+                        updateData.imageUrl = mlData.base_url; // Backwards compatible fallback
+                    } else {
+                        updateData.imageUrl = mlData.base_url;
+                    }
+                }
 
                 // Set priority based on triage score
                 if (mlData.triage_score) {
@@ -136,11 +146,13 @@ export async function POST(req: NextRequest) {
 
                 return NextResponse.json({
                     scanId: scan.id,
-                    imageUrl: scan.imageUrl,
+                    imageUrl: updateData.imageUrl || scan.imageUrl,
+                    audioUrl: scan.audioUrl,
+                    spectrogramUrl: updateData.spectrogramUrl,
                     aiDiagnosis: mlData.diagnosis,
                     confidence: mlData.confidence,
                     heatmapUrl: mlData.heatmap_url,
-                    status: mlData.status,
+                    status: updateData.status,
                 });
             } else {
                 console.error("ML Service failed:", await mlRes.text());

@@ -78,7 +78,7 @@ export default function ReportViewPage() {
                 pdfUrl: data.pdfUrl || prev.pdfUrl,
             }));
             alert(data.deliveryStatus === "sent" 
-                ? "Report released and n8n webhook triggered successfully!"
+                ? "Report released securely via Native CRM!"
                 : `Report released, but webhook failed: ${data.deliveryDetail}`);
         } catch {
             alert("Release failed. Please try again.");
