@@ -1,6 +1,8 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { RotateCcw, Square, Volume2, VolumeX } from "lucide-react";
+import VoiceInputButton from "@/components/voice/VoiceInputButton";
 
 type Candidate = {
     id: number;
@@ -69,24 +71,186 @@ function orderedSections(sections: Array<{ title: string; points: string[] }> = 
     });
 }
 
+function sectionBriefIntro(title: string): string {
+    const normalized = title.toLowerCase();
+    if (normalized.includes("patient overview")) return "Starting with patient overview";
+    if (normalized.includes("latest updates")) return "Latest clinical updates";
+    if (normalized.includes("scans") || normalized.includes("reports")) return "On scans and reports";
+    if (normalized.includes("medications") || normalized.includes("prescriptions")) return "For medications and prescriptions";
+    if (normalized.includes("appointments") || normalized.includes("follow")) return "For appointments and follow-ups";
+    if (normalized.includes("doctor notes") || normalized.includes("clinical notes")) return "Doctor and clinical notes";
+    if (normalized.includes("risk") || normalized.includes("pending")) return "Risks and pending attention items";
+    return `Regarding ${title}`;
+}
+
+function toBriefingSentence(points: string[]): string {
+    if (points.length === 0) return "No additional details are available.";
+    if (points.length === 1) return `${points[0]}.`;
+    const [first, ...rest] = points;
+    const restJoined = rest.map((p) => `Also, ${p}.`).join(" ");
+    return `${first}. ${restJoined}`;
+}
+
+function buildSpokenSegmentsForTurn(turn: Turn): string[] {
+    if (turn.role !== "copilot") return [turn.text];
+
+    const details = turn.details;
+    if (!details?.sections || details.sections.length === 0) {
+        return [turn.text];
+    }
+
+    const blocks: string[] = ["Doctor briefing for the selected patient."];
+    if (turn.text?.trim()) {
+        blocks.push(`Executive summary: ${turn.text.trim()}`);
+    }
+
+    const sections = orderedSections(details.sections);
+    for (const section of sections) {
+        if (!section?.title) continue;
+        const points = Array.isArray(section.points)
+            ? section.points.filter((p) => p && p.trim().length > 0)
+            : [];
+
+        if (points.length === 0) {
+            blocks.push(`${sectionBriefIntro(section.title)}. No details available in this category.`);
+            continue;
+        }
+
+        blocks.push(`${sectionBriefIntro(section.title)}. ${toBriefingSentence(points)}`);
+    }
+
+    if (Array.isArray(details.risks) && details.risks.length > 0) {
+        blocks.push(`Priority risk alerts. ${toBriefingSentence(details.risks)}`);
+    }
+
+    if (Array.isArray(details.pendingItems) && details.pendingItems.length > 0) {
+        blocks.push(`Pending follow-up actions. ${toBriefingSentence(details.pendingItems)}`);
+    }
+
+    blocks.push("End of briefing.");
+    return blocks.map((b) => b.replace(/\s+/g, " ").trim()).filter(Boolean);
+}
+
 export default function DoctorCopilotPanel() {
     const [message, setMessage] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [turns, setTurns] = useState<Turn[]>([]);
+    const [autoReadEnabled, setAutoReadEnabled] = useState(true);
+    const [speechSupported, setSpeechSupported] = useState(false);
+    const [speakingTurnId, setSpeakingTurnId] = useState<number | null>(null);
     const hasHydrated = useRef(false);
+    const synthRef = useRef<SpeechSynthesis | null>(null);
+    const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+    const speechPauseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const speechTokenRef = useRef(0);
+
+    const TTS_RATE = 1.5;
+    const TTS_PITCH = 1;
+    const SECTION_PAUSE_MS = 220;
+
+    const stopSpeaking = () => {
+        speechTokenRef.current += 1;
+        if (speechPauseTimerRef.current) {
+            clearTimeout(speechPauseTimerRef.current);
+            speechPauseTimerRef.current = null;
+        }
+        if (!synthRef.current) return;
+        synthRef.current.cancel();
+        utteranceRef.current = null;
+        setSpeakingTurnId(null);
+    };
+
+    const pickVoice = (): SpeechSynthesisVoice | null => {
+        if (!synthRef.current) return null;
+        const voices = synthRef.current.getVoices();
+        if (!voices || voices.length === 0) return null;
+
+        const preferred = voices.find((v) => /en-IN/i.test(v.lang))
+            || voices.find((v) => /en-US|en-GB/i.test(v.lang))
+            || voices.find((v) => /^en/i.test(v.lang));
+        return preferred || voices[0] || null;
+    };
+
+    const speakSegments = (segments: string[], turnId: number) => {
+        if (!synthRef.current) return;
+        const cleaned = segments.map((s) => s.trim()).filter(Boolean);
+        if (cleaned.length === 0) return;
+
+        stopSpeaking();
+        const speechToken = Date.now();
+        speechTokenRef.current = speechToken;
+        setSpeakingTurnId(turnId);
+
+        let index = 0;
+
+        const speakNext = () => {
+            if (!synthRef.current || speechTokenRef.current !== speechToken) return;
+
+            if (index >= cleaned.length) {
+                utteranceRef.current = null;
+                setSpeakingTurnId((current) => (current === turnId ? null : current));
+                return;
+            }
+
+            const utter = new SpeechSynthesisUtterance(cleaned[index]);
+            const voice = pickVoice();
+            if (voice) utter.voice = voice;
+            utter.rate = TTS_RATE;
+            utter.pitch = TTS_PITCH;
+
+            utter.onend = () => {
+                if (speechTokenRef.current !== speechToken) return;
+                index += 1;
+                speechPauseTimerRef.current = setTimeout(() => {
+                    speakNext();
+                }, SECTION_PAUSE_MS);
+            };
+
+            utter.onerror = () => {
+                if (speechTokenRef.current !== speechToken) return;
+                setSpeakingTurnId((current) => (current === turnId ? null : current));
+                utteranceRef.current = null;
+            };
+
+            utteranceRef.current = utter;
+            synthRef.current.speak(utter);
+        };
+
+        speakNext();
+    };
+
+    useEffect(() => {
+        if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+            setSpeechSupported(false);
+            return;
+        }
+
+        synthRef.current = window.speechSynthesis;
+        setSpeechSupported(true);
+
+        return () => {
+            if (speechPauseTimerRef.current) {
+                clearTimeout(speechPauseTimerRef.current);
+            }
+            window.speechSynthesis.cancel();
+        };
+    }, []);
 
     useEffect(() => {
         try {
             const raw = sessionStorage.getItem(STORAGE_KEY);
             if (!raw) return;
 
-            const parsed = JSON.parse(raw) as { message?: string; turns?: Turn[] };
+            const parsed = JSON.parse(raw) as { message?: string; turns?: Turn[]; autoReadEnabled?: boolean };
             if (typeof parsed.message === "string") {
                 setMessage(parsed.message);
             }
             if (Array.isArray(parsed.turns)) {
                 setTurns(parsed.turns);
+            }
+            if (typeof parsed.autoReadEnabled === "boolean") {
+                setAutoReadEnabled(parsed.autoReadEnabled);
             }
         } catch {
             // Ignore malformed persisted state.
@@ -100,18 +264,17 @@ export default function DoctorCopilotPanel() {
         try {
             sessionStorage.setItem(
                 STORAGE_KEY,
-                JSON.stringify({ message, turns })
+                JSON.stringify({ message, turns, autoReadEnabled })
             );
         } catch {
             // Ignore storage write failures.
         }
-    }, [message, turns]);
+    }, [message, turns, autoReadEnabled]);
 
     const canSend = useMemo(() => message.trim().length > 0 && !loading, [message, loading]);
 
-    async function handleSubmit(e?: FormEvent) {
-        e?.preventDefault();
-        const text = message.trim();
+    async function submitMessage(rawText: string) {
+        const text = rawText.trim();
         if (!text || loading) return;
 
         const userTurn: Turn = {
@@ -150,12 +313,21 @@ export default function DoctorCopilotPanel() {
             };
 
             setTurns((prev) => [...prev, copilotTurn]);
+
+            if (speechSupported && autoReadEnabled) {
+                speakSegments(buildSpokenSegmentsForTurn(copilotTurn), copilotTurn.id);
+            }
         } catch (err) {
             const msg = err instanceof Error ? err.message : "Unknown error";
             setError(msg);
         } finally {
             setLoading(false);
         }
+    }
+
+    async function handleSubmit(e?: FormEvent) {
+        e?.preventDefault();
+        await submitMessage(message);
     }
 
     return (
@@ -196,6 +368,37 @@ export default function DoctorCopilotPanel() {
                                 : "mr-auto max-w-[90%] rounded-lg border border-sage-300 bg-white px-3 py-2 text-sm text-olive-900"
                         }
                     >
+                        {turn.role === "copilot" && speechSupported && (
+                            <div className="mb-2 flex items-center justify-end gap-2">
+                                {speakingTurnId === turn.id && (
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-[11px] font-medium text-emerald-700">
+                                        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+                                        Speaking...
+                                    </span>
+                                )}
+
+                                {speakingTurnId === turn.id ? (
+                                    <button
+                                        type="button"
+                                        onClick={stopSpeaking}
+                                        className="inline-flex items-center gap-1 rounded-md border border-red-200 bg-red-50 px-2 py-1 text-[11px] font-medium text-red-700 hover:bg-red-100"
+                                    >
+                                        <Square className="h-3 w-3" />
+                                        Stop
+                                    </button>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={() => speakSegments(buildSpokenSegmentsForTurn(turn), turn.id)}
+                                        className="inline-flex items-center gap-1 rounded-md border border-sage-300 bg-cream-100 px-2 py-1 text-[11px] font-medium text-olive-700 hover:bg-sage-200"
+                                    >
+                                        <RotateCcw className="h-3 w-3" />
+                                        Replay
+                                    </button>
+                                )}
+                            </div>
+                        )}
+
                         {!(turn.role === "copilot" && turn.details?.sections && turn.details.sections.length > 0) && (
                             <p className="whitespace-pre-wrap">{turn.text}</p>
                         )}
@@ -283,6 +486,36 @@ export default function DoctorCopilotPanel() {
                 />
 
                 <div className="flex items-center justify-end gap-2">
+                    <VoiceInputButton
+                        onTranscript={(text) => {
+                            void submitMessage(text);
+                        }}
+                        mode="submit"
+                        disabled={loading}
+                        compact
+                        title="Dictate and auto-send"
+                    />
+
+                    {speechSupported && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                if (autoReadEnabled) {
+                                    stopSpeaking();
+                                }
+                                setAutoReadEnabled((prev) => !prev);
+                            }}
+                            className={`inline-flex items-center gap-1 rounded-md border px-3 py-2 text-xs font-medium ${autoReadEnabled
+                                ? "border-sage-300 bg-cream-100 text-olive-700 hover:bg-sage-200"
+                                : "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100"
+                                }`}
+                            title={autoReadEnabled ? "Auto-read enabled" : "Auto-read muted"}
+                        >
+                            {autoReadEnabled ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+                            {autoReadEnabled ? "Auto-read On" : "Auto-read Off"}
+                        </button>
+                    )}
+
                     <button
                         type="button"
                         onClick={() => setMessage("")}
