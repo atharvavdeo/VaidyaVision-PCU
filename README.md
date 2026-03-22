@@ -46,7 +46,7 @@
 ## ✅ Features Implemented
 
 ### **1. Core Medical Imaging Pipeline**
-- ✅ Multi-expert architecture (4 specialist models: Brain, Lung, Skin, ECG)
+- ✅ Multi-expert architecture (5 specialist domains: Brain, Lung, Skin, ECG, Audio/Spectrogram)\n- ✅ Strict ML Environment Gating (`USE_MEDICAL_MOE`) via dedicated `/health` diagnostic heartbeat\n- ✅ Dynamic Audio Modality processing (librosa `.wav` to `.png` Spectrogram projections)
 - ✅ ModalityRouter (ResNet34) for intelligent task routing
 - ✅ MC Dropout for uncertainty estimation (25 stochastic forward passes)
 - ✅ GradCAM heatmap generation for explainability
@@ -96,7 +96,7 @@
 - ✅ Protected route middleware
 
 ### **7. Database & Data Layer**
-- ✅ SQLite + Drizzle ORM setup (WAL mode)
+- ✅ Neon PostgreSQL Serverless (Edge Network)\n- ✅ Drizzle ORM with strict type-enforced PostgreSQL dialect\n- ✅ Dual-Run ETL Pipeline migrating legacy SQLite seamlessly
 - ✅ Comprehensive schema (15+ tables):
   - Users, Doctor Profiles
   - Scans, Reports, Templates
@@ -226,11 +226,11 @@ graph TB
         F1[BrainExpert — EfficientNetB2]
         F2[LungExpert — DenseNet121]
         F3[SkinExpert — ResNet50]
-        F4[ECGExpert — EfficientNetB0]
+        F4[ECGExpert — EfficientNetB0]\n        F5[AudioExpert — AST/ResNet50]
         E --> F1
         E --> F2
         E --> F3
-        E --> F4
+        E --> F4\n        E --> F5
     end
 
     subgraph "OCR Pipeline"
@@ -579,8 +579,8 @@ graph TB
 | Technology | Version | Purpose |
 |-----------|---------|---------|
 | Next.js API Routes | 14.2.x | REST API endpoints |
-| SQLite | 3.x | Database (WAL mode) |
-| better-sqlite3 | 12.6.2 | SQLite driver for Node.js |
+| Neon PostgreSQL | Serverless | Cloud Edge Database |
+| @neondatabase/serverless | latest | Edge WebSocket SQL Driver |
 | Drizzle ORM | 0.45.1 | Type-safe database ORM |
 | FastAPI | 0.104+ | Python ML inference server |
 | Uvicorn | 0.24+ | ASGI server |
@@ -620,7 +620,7 @@ graph TB
 ### **Communication**
 | Technology | Version | Purpose |
 |-----------|---------|---------|
-| Twilio | 5.12.1 | Voice & SMS reminders |
+| Twilio | 5.12.1 | Pure SMS / Voice reminders (WhatsApp dropped) |
 | Resend | 6.9.2 | Email notifications |
 | Socket.IO | 4.8.3 | Real-time messaging |
 
@@ -628,7 +628,7 @@ graph TB
 
 ## 💾 Database Schema
 
-### **Complete Schema (SQLite + Drizzle ORM)**
+### **Complete Schema (Neon PostgreSQL + Drizzle ORM)**
 
 ```typescript
 // Source: lib/db/schema.ts
@@ -796,7 +796,7 @@ Content-Type: multipart/form-data
 
 Body:
   file: <image_file>
-  modality: "brain" | "lung" | "skin" | "ecg"  (optional — auto-routed if omitted)
+  modality: "brain" | "lung" | "skin" | "ecg" | "audio"  (optional — auto-routed if omitted)
 
 Response:
 {
