@@ -226,11 +226,13 @@ graph TB
         F1[BrainExpert — EfficientNetB2]
         F2[LungExpert — DenseNet121]
         F3[SkinExpert — ResNet50]
-        F4[ECGExpert — EfficientNetB0]\n        F5[AudioExpert — AST/ResNet50]
+        F4[ECGExpert — EfficientNetB0]
+        F5[AudioExpert — AST/ResNet50]
         E --> F1
         E --> F2
         E --> F3
-        E --> F4\n        E --> F5
+        E --> F4
+        E --> F5
     end
 
     subgraph "OCR Pipeline"
