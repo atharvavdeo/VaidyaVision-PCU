@@ -1,0 +1,1361 @@
+[
+  {
+    "query": "What are the latest treatments for Type 2 Diabetes?",
+    "answer": "Error: GROQ_API_KEY not set",
+    "sources": [
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 1.0,
+        "method": "bm25"
+      },
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 0.829,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.659,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.651,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.589,
+        "method": "bm25"
+      }
+    ],
+    "confidence": "high",
+    "search_method": "hybrid",
+    "results_found": 5,
+    "crawl_performed": true,
+    "timestamp": "2026-03-21T17:21:18.813991"
+  },
+  {
+    "query": "What are the latest treatments for Type 2 Diabetes?",
+    "answer": "Error: GROQ_API_KEY not set",
+    "sources": [
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 1.0,
+        "method": "bm25"
+      },
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 0.829,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.659,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.651,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.589,
+        "method": "bm25"
+      }
+    ],
+    "confidence": "high",
+    "search_method": "hybrid",
+    "results_found": 5,
+    "crawl_performed": false,
+    "timestamp": "2026-03-21T17:22:21.710012"
+  },
+  {
+    "query": "What are the latest treatments for Type 2 Diabetes?",
+    "answer": "Error: GROQ_API_KEY not set",
+    "sources": [
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 1.0,
+        "method": "bm25"
+      },
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 0.829,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.659,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.651,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.589,
+        "method": "bm25"
+      }
+    ],
+    "confidence": "high",
+    "search_method": "hybrid",
+    "results_found": 5,
+    "crawl_performed": false,
+    "timestamp": "2026-03-21T17:22:23.670007"
+  },
+  {
+    "query": "What are the latest treatments for Type 2 Diabetes?",
+    "answer": "Error: GROQ_API_KEY not set",
+    "sources": [
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 1.0,
+        "method": "bm25"
+      },
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 0.829,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.659,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.651,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.589,
+        "method": "bm25"
+      }
+    ],
+    "confidence": "high",
+    "search_method": "hybrid",
+    "results_found": 5,
+    "crawl_performed": false,
+    "timestamp": "2026-03-21T17:22:24.222437"
+  },
+  {
+    "query": "What are the latest treatments for Type 2 Diabetes?",
+    "answer": "Error: GROQ_API_KEY not set",
+    "sources": [
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 1.0,
+        "method": "bm25"
+      },
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 0.829,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.659,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.651,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.589,
+        "method": "bm25"
+      }
+    ],
+    "confidence": "high",
+    "search_method": "hybrid",
+    "results_found": 5,
+    "crawl_performed": false,
+    "timestamp": "2026-03-21T17:22:24.385170"
+  },
+  {
+    "query": "What are the latest treatments for Type 2 Diabetes?",
+    "answer": "Error: GROQ_API_KEY not set",
+    "sources": [
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 1.0,
+        "method": "bm25"
+      },
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 0.829,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.659,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.651,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.589,
+        "method": "bm25"
+      }
+    ],
+    "confidence": "high",
+    "search_method": "hybrid",
+    "results_found": 5,
+    "crawl_performed": false,
+    "timestamp": "2026-03-21T17:22:24.548896"
+  },
+  {
+    "query": "What are the latest treatments for Type 2 Diabetes?",
+    "answer": "Error: GROQ_API_KEY not set",
+    "sources": [
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 1.0,
+        "method": "bm25"
+      },
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 0.829,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.659,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.651,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.589,
+        "method": "bm25"
+      }
+    ],
+    "confidence": "high",
+    "search_method": "hybrid",
+    "results_found": 5,
+    "crawl_performed": false,
+    "timestamp": "2026-03-21T17:22:24.718610"
+  },
+  {
+    "query": "What are the latest treatments for Type 2 Diabetes?",
+    "answer": "Error: GROQ_API_KEY not set",
+    "sources": [
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 1.0,
+        "method": "bm25"
+      },
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 0.829,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.659,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.651,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.589,
+        "method": "bm25"
+      }
+    ],
+    "confidence": "high",
+    "search_method": "hybrid",
+    "results_found": 5,
+    "crawl_performed": false,
+    "timestamp": "2026-03-21T17:22:24.819804"
+  },
+  {
+    "query": "What are the latest treatments for Type 2 Diabetes?",
+    "answer": "Error: GROQ_API_KEY not set",
+    "sources": [
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 1.0,
+        "method": "bm25"
+      },
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 0.829,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.659,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.651,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.589,
+        "method": "bm25"
+      }
+    ],
+    "confidence": "high",
+    "search_method": "hybrid",
+    "results_found": 5,
+    "crawl_performed": false,
+    "timestamp": "2026-03-21T17:22:25.014804"
+  },
+  {
+    "query": "What are the latest treatments for Type 2 Diabetes?",
+    "answer": "Error: GROQ_API_KEY not set",
+    "sources": [
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 1.0,
+        "method": "bm25"
+      },
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 0.829,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.659,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.651,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.589,
+        "method": "bm25"
+      }
+    ],
+    "confidence": "high",
+    "search_method": "hybrid",
+    "results_found": 5,
+    "crawl_performed": false,
+    "timestamp": "2026-03-21T17:22:25.140215"
+  },
+  {
+    "query": "What are the latest treatments for Type 2 Diabetes?",
+    "answer": "Error: GROQ_API_KEY not set",
+    "sources": [
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 1.0,
+        "method": "bm25"
+      },
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 0.829,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.659,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.651,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.589,
+        "method": "bm25"
+      }
+    ],
+    "confidence": "high",
+    "search_method": "hybrid",
+    "results_found": 5,
+    "crawl_performed": false,
+    "timestamp": "2026-03-21T17:22:25.305156"
+  },
+  {
+    "query": "What are the latest treatments for Type 2 Diabetes?",
+    "answer": "Error: GROQ_API_KEY not set",
+    "sources": [
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 1.0,
+        "method": "bm25"
+      },
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 0.829,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.659,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.651,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.589,
+        "method": "bm25"
+      }
+    ],
+    "confidence": "high",
+    "search_method": "hybrid",
+    "results_found": 5,
+    "crawl_performed": false,
+    "timestamp": "2026-03-21T17:22:25.449055"
+  },
+  {
+    "query": "What are the latest treatments for Type 2 Diabetes?",
+    "answer": "Error: GROQ_API_KEY not set",
+    "sources": [
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 1.0,
+        "method": "bm25"
+      },
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 0.829,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.659,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.651,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.589,
+        "method": "bm25"
+      }
+    ],
+    "confidence": "high",
+    "search_method": "hybrid",
+    "results_found": 5,
+    "crawl_performed": false,
+    "timestamp": "2026-03-21T17:22:25.786527"
+  },
+  {
+    "query": "Latest research on ECG abnormality detection with AI",
+    "answer": "Error: GROQ_API_KEY not set",
+    "sources": [
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 1.0,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.901,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.843,
+        "method": "bm25"
+      },
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 0.695,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.678,
+        "method": "bm25"
+      }
+    ],
+    "confidence": "high",
+    "search_method": "hybrid",
+    "results_found": 5,
+    "crawl_performed": false,
+    "timestamp": "2026-03-21T17:22:30.312513"
+  },
+  {
+    "query": "Latest research on ECG abnormality detection with AI",
+    "answer": "Error: GROQ_API_KEY not set",
+    "sources": [
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 1.0,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.901,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.843,
+        "method": "bm25"
+      },
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 0.695,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.678,
+        "method": "bm25"
+      }
+    ],
+    "confidence": "high",
+    "search_method": "hybrid",
+    "results_found": 5,
+    "crawl_performed": false,
+    "timestamp": "2026-03-21T17:22:41.373558"
+  },
+  {
+    "query": "Latest research on ECG abnormality detection with AI",
+    "answer": "Error: GROQ_API_KEY not set",
+    "sources": [
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 1.0,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.901,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.843,
+        "method": "bm25"
+      },
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 0.695,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.678,
+        "method": "bm25"
+      }
+    ],
+    "confidence": "high",
+    "search_method": "hybrid",
+    "results_found": 5,
+    "crawl_performed": false,
+    "timestamp": "2026-03-21T17:22:41.855450"
+  },
+  {
+    "query": "Latest research on ECG abnormality detection with AI",
+    "answer": "Error: GROQ_API_KEY not set",
+    "sources": [
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 1.0,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.901,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.843,
+        "method": "bm25"
+      },
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 0.695,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.678,
+        "method": "bm25"
+      }
+    ],
+    "confidence": "high",
+    "search_method": "hybrid",
+    "results_found": 5,
+    "crawl_performed": false,
+    "timestamp": "2026-03-21T17:22:42.027429"
+  },
+  {
+    "query": "Latest research on ECG abnormality detection with AI",
+    "answer": "Error: GROQ_API_KEY not set",
+    "sources": [
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 1.0,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.901,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.843,
+        "method": "bm25"
+      },
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 0.695,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.678,
+        "method": "bm25"
+      }
+    ],
+    "confidence": "high",
+    "search_method": "hybrid",
+    "results_found": 5,
+    "crawl_performed": false,
+    "timestamp": "2026-03-21T17:22:42.179930"
+  },
+  {
+    "query": "Latest research on ECG abnormality detection with AI",
+    "answer": "Error: GROQ_API_KEY not set",
+    "sources": [
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 1.0,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.901,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.843,
+        "method": "bm25"
+      },
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 0.695,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.678,
+        "method": "bm25"
+      }
+    ],
+    "confidence": "high",
+    "search_method": "hybrid",
+    "results_found": 5,
+    "crawl_performed": false,
+    "timestamp": "2026-03-21T17:22:42.338864"
+  },
+  {
+    "query": "Latest research on ECG abnormality detection with AI",
+    "answer": "Error: GROQ_API_KEY not set",
+    "sources": [
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 1.0,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.901,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.843,
+        "method": "bm25"
+      },
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 0.695,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.678,
+        "method": "bm25"
+      }
+    ],
+    "confidence": "high",
+    "search_method": "hybrid",
+    "results_found": 5,
+    "crawl_performed": false,
+    "timestamp": "2026-03-21T17:22:42.499857"
+  },
+  {
+    "query": "Latest research on ECG abnormality detection with AI",
+    "answer": "Error: GROQ_API_KEY not set",
+    "sources": [
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 1.0,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.901,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.843,
+        "method": "bm25"
+      },
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 0.695,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.678,
+        "method": "bm25"
+      }
+    ],
+    "confidence": "high",
+    "search_method": "hybrid",
+    "results_found": 5,
+    "crawl_performed": false,
+    "timestamp": "2026-03-21T17:22:42.674128"
+  },
+  {
+    "query": "Latest research on ECG abnormality detection with AI",
+    "answer": "Error: GROQ_API_KEY not set",
+    "sources": [
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 1.0,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.901,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.843,
+        "method": "bm25"
+      },
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 0.695,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.678,
+        "method": "bm25"
+      }
+    ],
+    "confidence": "high",
+    "search_method": "hybrid",
+    "results_found": 5,
+    "crawl_performed": false,
+    "timestamp": "2026-03-21T17:22:42.836557"
+  },
+  {
+    "query": "What are the latest treatments for Type 2 Diabetes?",
+    "answer": "Error: GROQ_API_KEY not set",
+    "sources": [
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 1.0,
+        "method": "bm25"
+      },
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 0.829,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.659,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.651,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.589,
+        "method": "bm25"
+      }
+    ],
+    "confidence": "high",
+    "search_method": "hybrid",
+    "results_found": 5,
+    "crawl_performed": false,
+    "timestamp": "2026-03-21T17:23:50.446973"
+  },
+  {
+    "query": "What are the latest treatments for Type 2 Diabetes?",
+    "answer": "Error: GROQ_API_KEY not set",
+    "sources": [
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 1.0,
+        "method": "bm25"
+      },
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 0.829,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.659,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.651,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.589,
+        "method": "bm25"
+      }
+    ],
+    "confidence": "high",
+    "search_method": "hybrid",
+    "results_found": 5,
+    "crawl_performed": false,
+    "timestamp": "2026-03-21T17:24:48.523478"
+  },
+  {
+    "query": "What are the latest treatments for Type 2 Diabetes?",
+    "answer": "Error: GROQ_API_KEY not set",
+    "sources": [
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 1.0,
+        "method": "bm25"
+      },
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 0.829,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.659,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.651,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.589,
+        "method": "bm25"
+      }
+    ],
+    "confidence": "high",
+    "search_method": "hybrid",
+    "results_found": 5,
+    "crawl_performed": false,
+    "timestamp": "2026-03-21T17:24:49.079668"
+  },
+  {
+    "query": "What are the latest treatments for Type 2 Diabetes?",
+    "answer": "Error: GROQ_API_KEY not set",
+    "sources": [
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 1.0,
+        "method": "bm25"
+      },
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 0.829,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.659,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.651,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.589,
+        "method": "bm25"
+      }
+    ],
+    "confidence": "high",
+    "search_method": "hybrid",
+    "results_found": 5,
+    "crawl_performed": false,
+    "timestamp": "2026-03-21T17:24:49.238833"
+  },
+  {
+    "query": "What are the latest treatments for Type 2 Diabetes?",
+    "answer": "Error: GROQ_API_KEY not set",
+    "sources": [
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 1.0,
+        "method": "bm25"
+      },
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 0.829,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.659,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.651,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.589,
+        "method": "bm25"
+      }
+    ],
+    "confidence": "high",
+    "search_method": "hybrid",
+    "results_found": 5,
+    "crawl_performed": false,
+    "timestamp": "2026-03-21T17:24:49.423427"
+  },
+  {
+    "query": "What are the latest treatments for Type 2 Diabetes?",
+    "answer": "Error: GROQ_API_KEY not set",
+    "sources": [
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 1.0,
+        "method": "bm25"
+      },
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 0.829,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.659,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.651,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.589,
+        "method": "bm25"
+      }
+    ],
+    "confidence": "high",
+    "search_method": "hybrid",
+    "results_found": 5,
+    "crawl_performed": false,
+    "timestamp": "2026-03-21T21:35:30.038160"
+  },
+  {
+    "query": "What are the latest treatments for Type 2 Diabetes?",
+    "answer": "Error: GROQ_API_KEY not set",
+    "sources": [
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 1.0,
+        "method": "bm25"
+      },
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 0.829,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.659,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.651,
+        "method": "bm25"
+      },
+      {
+        "title": "What are the latest treatments for Type 2 Diabetes? - Search Results - PubMed",
+        "source": "PubMed Central",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=What+are+the+latest+treatments+for+Type+2+Diabetes?&sort=date",
+        "relevance": 0.589,
+        "method": "bm25"
+      }
+    ],
+    "confidence": "high",
+    "search_method": "hybrid",
+    "results_found": 5,
+    "crawl_performed": false,
+    "timestamp": "2026-03-21T21:55:57.404069"
+  },
+  {
+    "query": "Brain tumor detection using MRI imaging",
+    "answer": "Error: GROQ_API_KEY not set",
+    "sources": [
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 1.0,
+        "method": "bm25"
+      },
+      {
+        "title": "Search Results",
+        "source": "Medical News Today",
+        "url": "https://www.medicalnewstoday.com/search?q=What+are+the+latest+treatments+for+Type+2+Diabetes?",
+        "relevance": 0.868,
+        "method": "bm25"
+      }
+    ],
+    "confidence": "medium",
+    "search_method": "hybrid",
+    "results_found": 2,
+    "crawl_performed": false,
+    "timestamp": "2026-03-21T22:04:13.112156"
+  }
+]
